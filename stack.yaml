@@ -1,0 +1,7 @@
+resolver: lts-14.11
+
+packages:
+  - .
+
+extra-deps: []
+

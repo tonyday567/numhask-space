@@ -1,0 +1,7 @@
+*/.stack-work/
+TAGS
+.DS_Store
+.stack-work
+/numhask-hedgehog/.dir-locals.el
+/numhask-space/.dir-locals.el
+/dist-newstyle
