@@ -31,7 +31,7 @@ import Data.Semigroup.Foldable (Foldable1(..))
 import Data.Semigroup.Traversable (Traversable1(..))
 import GHC.Exts
 import GHC.Generics (Generic)
-import NumHask.Space as S
+import NumHask.Space.Types as S
 import Algebra.Lattice
 
 -- $setup
@@ -135,17 +135,11 @@ instance Representable Range where
   index (Range l _) False = l
   index (Range _ r) True = r
 
-instance (Lattice a) => Lattice (Range a) where
-  (\/) = liftR2 (\/)
-  (/\) = liftR2 (/\)
+instance (Ord a) => Lattice (Range a) where
+  (\/) = liftR2 min
+  (/\) = liftR2 max
 
-instance (Eq a, BoundedLattice a) => BoundedJoinSemiLattice (Range a) where
-  bottom = top >.< bottom
-
-instance (Eq a, BoundedLattice a) => BoundedMeetSemiLattice (Range a) where
-  top = bottom >.< top
-
-instance (Eq a, Lattice a) => Space (Range a) where
+instance (Eq a, Ord a) => Space (Range a) where
   type Element (Range a) = a
 
   lower (Range l _) = l
@@ -153,7 +147,7 @@ instance (Eq a, Lattice a) => Space (Range a) where
 
   (>.<) = Range
 
-instance (Eq a, Lattice a, Fractional a) => FieldSpace (Range a) where
+instance (Ord a, Fractional a) => FieldSpace (Range a) where
     type Grid (Range a) = Int
 
     grid o s n = (+ bool 0 (step/2) (o==MidPos)) <$> posns
@@ -171,32 +165,21 @@ instance (Eq a, Lattice a, Fractional a) => FieldSpace (Range a) where
         ps = grid OuterPos r n
 
 -- | Monoid based on convex hull union
-instance (Eq a, Lattice a) => Semigroup (Range a) where
+instance (Eq a, Ord a) => Semigroup (Range a) where
   (<>) a b = getUnion (Union a <> Union b)
-
-instance (Spaceable a) => Monoid (Range a) where
-  mempty = getUnion mempty
 
 -- | Numeric algebra based on Interval arithmetic
 -- https://en.wikipedia.org/wiki/Interval_arithmetic
 --
 
-instance (Num a, Eq a, Lattice a) => Num (Range a) where
+instance (Num a, Eq a, Ord a) => Num (Range a) where
   (Range l u) + (Range l' u') = space1 [l+l',u+u']
   negate (Range l u) = negate u ... negate l
   (Range l u) * (Range l' u') =
     space1 [l * l', l * u', u * l', u * u']
-  signum (Range l u) = bool (negate 1) 1 (u `joinLeq` l)
-  abs (Range l u) = bool (u ... l) (l ... u) (u `joinLeq` l)
+  signum (Range l u) = bool (negate 1) 1 (u >= l)
+  abs (Range l u) = bool (u ... l) (l ... u) (u >= l)
   fromInteger x = fromInteger x ... fromInteger x
-
-instance (Spaceable a, Fractional a) => Fractional (Range a) where
-  fromRational x = fromRational x ... fromRational x
-  recip i@(Range l u)
-    | 0 |.| i && not (1e-6 |.| i) = bottom ... recip l
-    | 0 |.| i && not (negate 1e-6 |.| i) = top ... recip l
-    | 0 |.| i = whole
-    | otherwise = recip l ... recip u
 
 stepSensible :: (Fractional a, RealFrac a, Floating a, Integral b) => Pos -> a -> b -> a
 stepSensible tp span' n =
@@ -210,7 +193,7 @@ stepSensible tp span' n =
       | err <= 0.75 = 2.0 * step'
       | otherwise = step'
 
-gridSensible :: (Ord a, Lattice a, RealFrac a, Floating a, Integral b) =>
+gridSensible :: (Ord a, RealFrac a, Floating a, Integral b) =>
     Pos -> Bool -> Range a -> b -> [a]
 gridSensible tp inside r@(Range l u) n =
     bool id (filter (`memberOf` r)) inside $

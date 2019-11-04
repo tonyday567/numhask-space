@@ -19,9 +19,18 @@ module NumHask.Rect
   , pattern Rect
   , pattern Ranges
   , corners
+  , corners4
   , projectRect
-  , mult
-  , unit
+  , addRect
+  , multRect
+  , unitRect
+  , foldRect
+  , addPoint
+  , rotateRect
+  , gridR
+  , gridF
+  , aspect
+  , ratio
   ) where
 
 import Data.Bool (bool)
@@ -32,9 +41,11 @@ import Data.Functor.Compose
 import Data.Functor.Rep
 import Prelude
 import NumHask.Range
-import NumHask.Space
+import NumHask.Space.Types
 import NumHask.Point
 import Algebra.Lattice
+import Data.List.NonEmpty
+import Data.Semigroup
 
 -- $setup
 -- >>> :set -XNoImplicitPrelude
@@ -120,17 +131,16 @@ instance Representable Rect where
   index (Rect _ _ c _) (True, False) = c
   index (Rect _ _ _ d) (True, True) = d
 
-instance (Eq a, Lattice a) => Semigroup (Rect a) where
-  (<>) (Ranges x y) (Ranges x' y') = Ranges (x `union` x') (y `union` y')
+instance (Ord a) => Semigroup (Rect a) where
+  (<>) = union
 
-instance (Spaceable a) => Monoid (Rect a) where
-  mempty = Ranges mempty mempty
-
-instance (Spaceable a) => Space (Rect a) where
+instance (Ord a) => Space (Rect a) where
   type Element (Rect a) = Point a
 
   union (Ranges a b) (Ranges c d) = Ranges (a `union` c) (b `union` d)
-  intersection (Ranges a b) (Ranges c d) = Ranges (a `intersection` c) (b `intersection` d)
+
+  intersection (Ranges a b) (Ranges c d) = Ranges (a `intersection` c)
+    (b `intersection` d)
 
   (>.<) (Point l0 l1) (Point u0 u1) = Rect l0 u0 l1 u1
 
@@ -139,7 +149,15 @@ instance (Spaceable a) => Space (Rect a) where
 
   singleton (Point x y) = Rect x x y y
 
-instance (Fractional a, Spaceable a) => FieldSpace (Rect a) where
+  (...) p p' = (p /\ p') >.< (p \/ p')
+
+  (|.|) a s = (a `meetLeq` lower s) && (upper s `meetLeq` a)
+
+  (|>|) s0 s1 = lower s0 `meetLeq` upper s1
+
+  (|<|) s0 s1 = lower s1 `joinLeq` upper s0
+
+instance (Ord a, Fractional a, Num a) => FieldSpace (Rect a) where
     type Grid (Rect a) = Point Int
 
     grid o s n = (+ bool 0 (step/2) (o==MidPos)) <$> posns
@@ -165,13 +183,23 @@ instance (Fractional a, Spaceable a) => FieldSpace (Rect a) where
         sx = width rX / fromIntegral stepX
         sy = width rY / fromIntegral stepY
 
--- | create a list of pairs representing the lower left and upper right cormners of a rectangle.
-corners :: (Spaceable a) => Rect a -> [Point a]
+-- | create a list of points representing the lower left and upper right corners of a rectangle.
+corners :: (Ord a) => Rect a -> [Point a]
 corners r = [lower r, upper r]
+
+-- | the 4 corners
+corners4 :: Rect a -> NonEmpty (Point a)
+corners4 (Rect x z y w) =
+  Point x y :|
+  [ Point x w
+  , Point z y
+  , Point z w
+  ]
+
 
 -- | project a Rect from an old range to a new 1
 projectRect ::
-     (Spaceable a, Fractional a)
+     (Ord a, Fractional a)
   => Rect a
   -> Rect a
   -> Rect a
@@ -186,8 +214,12 @@ projectRect r0 r1 (Rect a b c d) = Rect a' b' c' d'
 -- > width one = one
 -- > mid zero = zero
 
-mult :: (Eq a, Lattice a, Fractional a) => Rect a -> Rect a -> Rect a
-mult (Ranges x0 y0) (Ranges x1 y1) =
+addRect :: (Num a) => Rect a -> Rect a -> Rect a
+addRect (Rect a b c d) (Rect a' b' c' d') =
+  Rect (a + a') (b + b') (c + c') (d + d')
+
+multRect :: (Ord a, Fractional a) => Rect a -> Rect a -> Rect a
+multRect (Ranges x0 y0) (Ranges x1 y1) =
   Ranges (x0 `rtimes` x1) (y0 `rtimes` y1)
   where
     rtimes a b = bool (Range (m - r/2) (m + r/2)) 0 (a == 0 || b == 0)
@@ -195,7 +227,36 @@ mult (Ranges x0 y0) (Ranges x1 y1) =
         m = mid a + mid b
         r = width a * width b
 
-unit :: Rect Double
-unit = Ranges rone rone where
+unitRect :: (Fractional a) => Rect a
+unitRect = Ranges rone rone where
     rone = Range (-0.5) 0.5
 
+foldRect :: (Ord a) => [Rect a] -> Maybe (Rect a)
+foldRect [] = Nothing
+foldRect (x:xs) = Just $ sconcat (x :| xs)
+
+addPoint :: (Num a) => Point a -> Rect a -> Rect a
+addPoint (Point x' y') (Rect x z y w) = Rect (x+x') (z+x') (y+y') (w+y')
+
+-- | rotate the corners of a Rect by x degrees relative to the origin, and fold to a new Rcet
+rotateRect :: (Floating a, Ord a) => a -> Rect a -> Rect a
+rotateRect d r =
+  space1 $ rotate d <$> corners r
+
+-- | Create Rects for a formulae y = f(x) across an x range
+gridR :: (Ord a, Fractional a) => (a -> a) -> Range a -> Int -> [Rect a]
+gridR f r g = (\x -> Rect (x-tick/2) (x+tick/2) 0 (f x)) <$> grid MidPos r g
+  where
+    tick = width r / fromIntegral g
+
+-- | Create values c for Rects data for a formulae c = f(x,y)
+gridF :: (Ord a, Fractional a) => (Point a -> b) -> Rect a -> Grid (Rect a) -> [(Rect a, b)]
+gridF f r g = (\x -> (x, f (mid x))) <$> gridSpace r g
+
+-- | convert a ratio of x-plane : y-plane to a ViewBox with a height of one.
+aspect :: (Fractional a) => a -> Rect a
+aspect a = Rect (a * (-0.5)) (a * 0.5) (-0.5) 0.5
+
+-- | convert a Rect to a ratio
+ratio :: (Fractional a) => Rect a -> a
+ratio (Rect x z y w) = (z-x)/(w-y)

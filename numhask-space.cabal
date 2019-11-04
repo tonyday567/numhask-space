@@ -52,6 +52,7 @@ library
     , lattices >= 2.0.1 && <2.1
   exposed-modules:
     NumHask.Space
+    NumHask.Space.Types
     NumHask.Range
     NumHask.Rect
     NumHask.Point

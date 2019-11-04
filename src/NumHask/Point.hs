@@ -12,6 +12,8 @@
 module NumHask.Point
   ( Point(..)
   , pattern Point
+  , rotate
+  , gridP
   ) where
 
 import Prelude
@@ -21,6 +23,8 @@ import Text.Show
 import Algebra.Lattice
 import Data.Functor.Rep
 import Data.Distributive as D
+import NumHask.Range
+import NumHask.Space.Types
 
 -- $setup
 -- >>> :set -XNoImplicitPrelude
@@ -41,7 +45,7 @@ import Data.Distributive as D
 -- Point "a string" "pair mappended"
 --
 -- As a Ring and Field class
--- 
+--
 -- >>> Point 0 1 + zero
 -- Point 0 1
 -- >>> Point 0 1 + Point 2 3
@@ -128,13 +132,16 @@ instance Representable Point where
   index (Point l _) False = l
   index (Point _ r) True = r
 
-instance (Lattice a) => Lattice (Point a) where
-  (\/) = liftR2 (\/)
-  (/\) = liftR2 (/\)
+instance (Ord a) => Lattice (Point a) where
+  (\/) (Point x y) (Point x' y') = Point (max x x') (max y y')
+  (/\) (Point x y) (Point x' y') = Point (min x x') (min y y')
 
-instance (BoundedLattice a) => BoundedJoinSemiLattice (Point a) where
-  bottom = Point bottom bottom
+-- | rotate a point by x degrees relative to the origin
+rotate :: (Floating a) => a -> Point a -> Point a
+rotate d (Point x y) = Point (x * cos d' + y*sin d') (y* cos d'-x*sin d')
+  where
+    d' = d*pi/180
 
-instance (BoundedLattice a) => BoundedMeetSemiLattice (Point a) where
-  top = Point top top
-
+-- | Create Points for a formulae y = f(x) across an x range
+gridP :: (Ord a, Fractional a) => (a -> a) -> Range a -> Int -> [Point a]
+gridP f r g = (\x -> Point x (f x)) <$> grid OuterPos r g
