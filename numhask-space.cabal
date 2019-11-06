@@ -60,3 +60,24 @@ library
     NumHask.Space.Time
   other-modules:
   default-language: Haskell2010
+
+test-suite test
+  type:
+    exitcode-stdio-1.0
+  main-is:
+    test.hs
+  hs-source-dirs:
+    test
+  default-extensions:
+    NegativeLiterals
+    NoImplicitPrelude
+    OverloadedStrings
+    UnicodeSyntax
+  build-depends:
+      base >=4.7 && <5
+    , hedgehog >=0.5 && <1.1
+    , numhask-space
+    , numhask >=0.3 && <0.4
+    , numhask-prelude >=0.3 && <0.4
+    , numhask-hedgehog >=0.3 && <0.4
+  default-language: Haskell2010
