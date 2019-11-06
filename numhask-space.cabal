@@ -1,5 +1,5 @@
 name: numhask-space
-version: 0.1.1
+version: 0.2.0
 synopsis:
   numerical spaces
 description:
@@ -7,9 +7,9 @@ description:
 category:
   mathematics
 homepage:
-  https://github.com/tonyday567/numhask#readme
+  https://github.com/tonyday567/numhask-space#readme
 bug-reports:
-  https://github.com/tonyday567/numhask/issues
+  https://github.com/tonyday567/numhask-space/issues
 author:
   Tony Day
 maintainer:
@@ -28,9 +28,7 @@ source-repository head
   type:
     git
   location:
-    https://github.com/tonyday567/numhask
-  subdir:
-    numhask-space
+    https://github.com/tonyday567/numhask-space
 library
   hs-source-dirs:
     src

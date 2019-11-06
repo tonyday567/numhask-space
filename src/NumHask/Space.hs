@@ -25,4 +25,4 @@ import NumHask.Rect
 -- $instances
 -- Some concrete data types that are usseful in charting.
 --
-
+--
