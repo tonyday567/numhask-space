@@ -2,34 +2,35 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+-- | Space types
 module NumHask.Space.Types
-  ( Space(..)
-  , Union(..)
-  , Intersection(..)
-  , FieldSpace(..)
-  , mid
-  , project
-  , Pos(..)
-  , space1
-  , memberOf
-  , contains
-  , disjoint
-  , width
-  , (+/-)
-  , monotone
-  , eps
-  , widen
-  , widenEps
-  , scale
-  , move
+  ( Space (..),
+    Union (..),
+    Intersection (..),
+    FieldSpace (..),
+    mid,
+    project,
+    Pos (..),
+    space1,
+    memberOf,
+    contains,
+    disjoint,
+    width,
+    (+/-),
+    monotone,
+    eps,
+    widen,
+    widenEps,
+    scale,
+    move,
   )
-
 where
 
+-- | Space is a continuous range of numbers that contains elements and has an upper and lower value.
 class Space s where
 
   -- | the underlying element in the space
@@ -49,16 +50,19 @@ class Space s where
   intersection :: s -> s -> s
 
   default intersection :: (Ord (Element s)) => s -> s -> s
-  intersection a b = l >.< u where
+  intersection a b = l >.< u
+    where
       l = lower a `max` lower b
       u = upper a `min` upper b
 
   -- | the union of two spaces
   union :: s -> s -> s
+
   default union :: (Ord (Element s)) => s -> s -> s
-  union a b = l >.< u where
-    l = lower a `min` lower b
-    u = upper a `max` upper b
+  union a b = l >.< u
+    where
+      l = lower a `min` lower b
+      u = upper a `max` upper b
 
   -- | Normalise a space so that
   -- > lower a \/ upper a == lower a
@@ -68,30 +72,39 @@ class Space s where
 
   -- | create a normalised space from two elements
   infix 3 ...
+
   (...) :: Element s -> Element s -> s
+
   default (...) :: (Ord (Element s)) => Element s -> Element s -> s
   (...) a b = (a `min` b) >.< (a `max` b)
 
   -- | create a space from two elements without normalising
   infix 3 >.<
+
   (>.<) :: Element s -> Element s -> s
 
   -- | is an element in the space
   infixl 7 |.|
+
   (|.|) :: Element s -> s -> Bool
+
   default (|.|) :: (Ord (Element s)) => Element s -> s -> Bool
   (|.|) a s = (a >= lower s) && (upper s >= a)
 
   -- | is one space completely above the other
   infixl 7 |>|
+
   (|>|) :: s -> s -> Bool
+
   default (|>|) :: (Ord (Element s)) => s -> s -> Bool
   (|>|) s0 s1 =
     lower s0 >= upper s1
 
   -- | is one space completely below the other
   infixl 7 |<|
+
   (|<|) :: s -> s -> Bool
+
   default (|<|) :: (Ord (Element s)) => s -> s -> Bool
   (|<|) s0 s1 =
     lower s1 <= upper s0
@@ -99,14 +112,14 @@ class Space s where
 -- | is a space contained within another?
 contains :: (Space s) => s -> s -> Bool
 contains s0 s1 =
-  lower s1 |.| s0 &&
-  upper s1 |.| s0
+  lower s1 |.| s0
+    && upper s1 |.| s0
 
 -- | are two spaces disjoint?
 disjoint :: (Space s) => s -> s -> Bool
 disjoint s0 s1 = s0 |>| s1 || s0 |<| s1
 
--- (|.|) a s = (a `joinLeq` lower s) && (upper s `meetLeq` a)
+-- | is an element contained within a space
 memberOf :: (Space s) => Element s -> s -> Bool
 memberOf = (|.|)
 
@@ -116,22 +129,25 @@ width s = upper s - lower s
 
 -- | create a space centered on a plus or minus b
 infixl 6 +/-
+
 (+/-) :: (Space s, Num (Element s)) => Element s -> Element s -> s
 a +/- b = a - b ... a + b
 
-newtype Union a = Union { getUnion :: a }
+-- | a convex hull
+newtype Union a = Union {getUnion :: a}
 
 instance (Space a) => Semigroup (Union a) where
   (<>) (Union a) (Union b) = Union (a `union` b)
 
-newtype Intersection a = Intersection { getIntersection :: a }
+-- | https://en.wikipedia.org/wiki/Intersection_(set_theory)
+newtype Intersection a = Intersection {getIntersection :: a}
 
 instance (Space a) => Semigroup (Intersection a) where
   (<>) (Intersection a) (Intersection b) = Intersection (a `union` b)
 
 -- | a space that can be divided neatly
---
 class (Space s, Num (Element s)) => FieldSpace s where
+
   type Grid s :: *
 
   -- | create equally-spaced elements across a space
@@ -145,7 +161,7 @@ data Pos = OuterPos | InnerPos | LowerPos | UpperPos | MidPos deriving (Show, Eq
 
 -- | mid-point of the space
 mid :: (Space s, Fractional (Element s)) => s -> Element s
-mid s = (lower s + upper s)/2.0
+mid s = (lower s + upper s) / 2.0
 
 -- | project a data point from one space to another, preserving relative position
 --
@@ -155,10 +171,9 @@ mid s = (lower s + upper s)/2.0
 -- > project mempty one zero = NaN
 -- > project one mempty zero = Infinity
 -- > project one mempty one = NaN
---
 project :: (Space s, Fractional (Element s)) => s -> s -> Element s -> Element s
 project s0 s1 p =
-  ((p-lower s0)/(upper s0-lower s0)) * (upper s1-lower s1) + lower s1
+  ((p - lower s0) / (upper s0 - lower s0)) * (upper s1 - lower s1) + lower s1
 
 -- | the containing space of a non-empty Traversable
 space1 :: (Space s, Traversable f) => f (Element s) -> s
@@ -170,25 +185,32 @@ monotone f s = space1 [f (lower s), f (upper s)]
 
 -- | a small space
 eps ::
-    ( Space s
-    , Fractional (Element s)
-    )
-    => Element s -> Element s -> s
+  ( Space s,
+    Fractional (Element s)
+  ) =>
+  Element s ->
+  Element s ->
+  s
 eps accuracy a = a +/- (accuracy * a * 1e-6)
 
 -- | widen a space
 widen ::
-    ( Space s
-    , Num (Element s))
-    => Element s -> s -> s
+  ( Space s,
+    Num (Element s)
+  ) =>
+  Element s ->
+  s ->
+  s
 widen a s = (lower s - a) >.< (upper s + a)
 
 -- | widen by a small amount
 widenEps ::
-    ( Space s
-    , Fractional (Element s)
-    )
-    => Element s -> s -> s
+  ( Space s,
+    Fractional (Element s)
+  ) =>
+  Element s ->
+  s ->
+  s
 widenEps accuracy = widen (accuracy * 1e-6)
 
 -- | scale a Space
@@ -198,7 +220,3 @@ scale e s = (e * lower s) ... (e * upper s)
 -- | move a Space
 move :: (Num (Element s), Space s) => Element s -> s -> s
 move e s = (e + lower s) ... (e + upper s)
-
-
-
-

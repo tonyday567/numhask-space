@@ -1,31 +1,32 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedLabels #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -Wall #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 -- | data algorithms related to time (as a Space)
 module NumHask.Space.Time
-  ( parseUTCTime
-  , TimeGrain(..)
-  , floorGrain
-  , ceilingGrain
-  , sensibleTimeGrid
-  , PosDiscontinuous(..)
-  , placedTimeLabelDiscontinuous
-  ) where
+  ( parseUTCTime,
+    TimeGrain (..),
+    floorGrain,
+    ceilingGrain,
+    sensibleTimeGrid,
+    PosDiscontinuous (..),
+    placedTimeLabelDiscontinuous,
+  )
+where
 
-import Data.Time
-import GHC.Base (String)
-import GHC.Generics
-import Prelude
 import qualified Control.Foldl as L
 import qualified Data.Text as Text
 import Data.Text (Text)
+import Data.Time
+import GHC.Base (String)
+import GHC.Generics
 import NumHask.Space
+import Prelude
 
 -- | parse text as per iso8601
 --
@@ -33,7 +34,6 @@ import NumHask.Space
 -- >>> let t0 = parseUTCTime ("2017-12-05" :: Text)
 -- >>> t0
 -- Just 2017-12-05 00:00:00 UTC
---
 parseUTCTime :: Text -> Maybe UTCTime
 parseUTCTime =
   parseTimeM False defaultTimeLocale (iso8601DateFormat Nothing) . Text.unpack
@@ -58,7 +58,7 @@ grainSecs (Seconds n) = n
 
 toDouble :: NominalDiffTime -> Double
 toDouble t =
-    (/1000000000000.0) $
+  (/ 1000000000000.0) $
     fromIntegral (floor $ t * 1000000000000 :: Integer)
 
 toDouble' :: DiffTime -> Double
@@ -68,11 +68,11 @@ toDouble' =
 fromDouble :: Double -> NominalDiffTime
 fromDouble x =
   let d0 = ModifiedJulianDay 0
-      days = floor (x/toDouble nominalDay)
+      days = floor (x / toDouble nominalDay)
       secs = x - fromIntegral days * toDouble nominalDay
       t0 = UTCTime d0 (picosecondsToDiffTime 0)
       t1 = UTCTime (addDays days d0) (picosecondsToDiffTime $ floor (secs / 1.0e-12))
-  in diffUTCTime t1 t0
+   in diffUTCTime t1 t0
 
 fromDouble' :: Double -> DiffTime
 fromDouble' d = toEnum $ fromEnum $ d * ((10 :: Double) ^ (12 :: Integer))
@@ -84,41 +84,45 @@ fromDouble' d = toEnum $ fromEnum $ d * ((10 :: Double) ^ (12 :: Integer))
 --
 -- >>> addGrain (Months 1) 1 (UTCTime (fromGregorian 2015 2 28) 0)
 -- 2015-03-31 00:00:00 UTC
--- 
+--
 -- >>> addGrain (Hours 6) 5 (UTCTime (fromGregorian 2015 2 28) 0)
 -- 2015-03-01 06:00:00 UTC
--- 
+--
 -- >>> addGrain (Seconds 0.001) (60*1000+1) (UTCTime (fromGregorian 2015 2 28) 0)
 -- 2015-02-28 00:01:00.001 UTC
--- 
 addGrain :: TimeGrain -> Int -> UTCTime -> UTCTime
 addGrain (Years n) x (UTCTime d t) =
-    UTCTime (addDays (-1) $ addGregorianYearsClip (n*fromIntegral x) (addDays 1 d)) t
+  UTCTime (addDays (-1) $ addGregorianYearsClip (n * fromIntegral x) (addDays 1 d)) t
 addGrain (Months n) x (UTCTime d t) =
-    UTCTime (addDays (-1) $ addGregorianMonthsClip (fromIntegral (n*x)) (addDays 1 d)) t
+  UTCTime (addDays (-1) $ addGregorianMonthsClip (fromIntegral (n * x)) (addDays 1 d)) t
 addGrain (Days n) x (UTCTime d t) = UTCTime (addDays (fromIntegral x * fromIntegral n) d) t
 addGrain g@(Hours _) x d = addUTCTime (fromDouble (fromIntegral x * grainSecs g)) d
 addGrain g@(Minutes _) x d = addUTCTime (fromDouble (fromIntegral x * grainSecs g)) d
 addGrain g@(Seconds _) x d = addUTCTime (fromDouble (fromIntegral x * grainSecs g)) d
 
-
 addHalfGrain :: TimeGrain -> UTCTime -> UTCTime
 addHalfGrain (Years n) (UTCTime d t) =
-    UTCTime (addDays (-1) $ (if m'==1 then addGregorianMonthsClip 6 else id) $
-             addGregorianYearsClip d' (addDays 1 d)) t
+  UTCTime
+    ( addDays (-1) $ (if m' == 1 then addGregorianMonthsClip 6 else id) $
+        addGregorianYearsClip d' (addDays 1 d)
+    )
+    t
   where
-    (d',m') = divMod 2 n
+    (d', m') = divMod 2 n
 addHalfGrain (Months n) (UTCTime d t) =
-    UTCTime (addDays (if m'==1 then 15 else 0) {- sue me -} $
-             addDays (-1) $
-             addGregorianMonthsClip (fromIntegral d') (addDays 1 d)) t
+  UTCTime
+    ( addDays (if m' == 1 then 15 else 0 {- sue me -})
+        $ addDays (-1)
+        $ addGregorianMonthsClip (fromIntegral d') (addDays 1 d)
+    )
+    t
   where
-    (d',m') = divMod 2 n
+    (d', m') = divMod 2 n
 addHalfGrain (Days n) (UTCTime d t) =
-    (if m'== 1 then addUTCTime (fromDouble (0.5 * grainSecs (Days 1))) else id) $
+  (if m' == 1 then addUTCTime (fromDouble (0.5 * grainSecs (Days 1))) else id) $
     UTCTime (addDays (fromIntegral d') d) t
   where
-    (d',m') = divMod 2 n
+    (d', m') = divMod 2 n
 addHalfGrain g@(Hours _) d = addUTCTime (fromDouble (0.5 * grainSecs g)) d
 addHalfGrain g@(Minutes _) d = addUTCTime (fromDouble (0.5 * grainSecs g)) d
 addHalfGrain g@(Seconds _) d = addUTCTime (fromDouble (0.5 * grainSecs g)) d
@@ -139,25 +143,24 @@ addHalfGrain g@(Seconds _) d = addUTCTime (fromDouble (0.5 * grainSecs g)) d
 --
 -- >>> floorGrain (Seconds 0.1) (UTCTime (fromGregorian 2016 12 30) 0.12)
 -- 2016-12-30 00:00:00.1 UTC
---
 floorGrain :: TimeGrain -> UTCTime -> UTCTime
 floorGrain (Years n) (UTCTime d _) = UTCTime (addDays (-1) $ fromGregorian y' 1 1) 0
   where
-    (y,_,_) = toGregorian (addDays 1 d)
+    (y, _, _) = toGregorian (addDays 1 d)
     y' = fromIntegral $ 1 + n * floor (fromIntegral (y - 1) / fromIntegral n :: Double)
 floorGrain (Months n) (UTCTime d _) = UTCTime (addDays (-1) $ fromGregorian y m' 1) 0
   where
-    (y,m,_) = toGregorian (addDays 1 d)
+    (y, m, _) = toGregorian (addDays 1 d)
     m' = fromIntegral (1 + fromIntegral n * floor (fromIntegral (m - 1) / fromIntegral n :: Double) :: Integer)
 floorGrain (Days _) (UTCTime d _) = UTCTime d 0
 floorGrain (Hours h) u@(UTCTime _ t) = addUTCTime x u
   where
     s = toDouble' t
-    x = fromDouble $ fromIntegral (h * 3600 * fromIntegral (floor (s / (fromIntegral h*3600)) :: Integer)) - s
+    x = fromDouble $ fromIntegral (h * 3600 * fromIntegral (floor (s / (fromIntegral h * 3600)) :: Integer)) - s
 floorGrain (Minutes m) u@(UTCTime _ t) = addUTCTime x u
   where
     s = toDouble' t
-    x = fromDouble $ fromIntegral (m * 60 * fromIntegral (floor (s / (fromIntegral m*60)) :: Integer)) - s
+    x = fromDouble $ fromIntegral (m * 60 * fromIntegral (floor (s / (fromIntegral m * 60)) :: Integer)) - s
 floorGrain (Seconds secs) u@(UTCTime _ t) = addUTCTime x u
   where
     s = toDouble' t
@@ -179,26 +182,25 @@ floorGrain (Seconds secs) u@(UTCTime _ t) = addUTCTime x u
 --
 -- >>> ceilingGrain (Seconds 0.1) (UTCTime (fromGregorian 2016 12 30) 0.12)
 -- 2016-12-30 00:00:00.2 UTC
---
 ceilingGrain :: TimeGrain -> UTCTime -> UTCTime
 ceilingGrain (Years n) (UTCTime d _) = UTCTime (addDays (-1) $ fromGregorian y' 1 1) 0
   where
-    (y,_,_) = toGregorian (addDays 1 d)
+    (y, _, _) = toGregorian (addDays 1 d)
     y' = fromIntegral $ 1 + n * ceiling (fromIntegral (y - 1) / fromIntegral n :: Double)
 ceilingGrain (Months n) (UTCTime d _) = UTCTime (addDays (-1) $ fromGregorian y' m'' 1) 0
   where
-    (y,m,_) = toGregorian (addDays 1 d)
+    (y, m, _) = toGregorian (addDays 1 d)
     m' = (m + n - 1) `div` n * n
-    (y',m'') = fromIntegral <$> if m' == 12 then (y+1,1) else (y,m'+1)
-ceilingGrain (Days _) (UTCTime d t) = if t==0 then UTCTime d 0 else UTCTime (addDays 1 d) 0
+    (y', m'') = fromIntegral <$> if m' == 12 then (y + 1, 1) else (y, m' + 1)
+ceilingGrain (Days _) (UTCTime d t) = if t == 0 then UTCTime d 0 else UTCTime (addDays 1 d) 0
 ceilingGrain (Hours h) u@(UTCTime _ t) = addUTCTime x u
   where
     s = toDouble' t
-    x = fromDouble $ fromIntegral (h * 3600 * fromIntegral (ceiling (s / (fromIntegral h*3600)) :: Integer)) - s
+    x = fromDouble $ fromIntegral (h * 3600 * fromIntegral (ceiling (s / (fromIntegral h * 3600)) :: Integer)) - s
 ceilingGrain (Minutes m) u@(UTCTime _ t) = addUTCTime x u
   where
     s = toDouble' t
-    x = fromDouble $ fromIntegral (m * 60 * fromIntegral (ceiling (s / (fromIntegral m*60)) :: Integer)) - s
+    x = fromDouble $ fromIntegral (m * 60 * fromIntegral (ceiling (s / (fromIntegral m * 60)) :: Integer)) - s
 ceilingGrain (Seconds secs) u@(UTCTime _ t) = addUTCTime x u
   where
     s = toDouble' t
@@ -212,7 +214,6 @@ data PosDiscontinuous = PosInnerOnly | PosIncludeBoundaries
 --
 -- >>> placedTimeLabelDiscontinuous PosIncludeBoundaries (Just "%d %b") 2 [UTCTime (fromGregorian 2017 12 6) 0, UTCTime (fromGregorian 2017 12 29) 0, UTCTime (fromGregorian 2018 1 31) 0, UTCTime (fromGregorian 2018 3 3) 0]
 -- ([(0,"06 Dec"),(1,"31 Dec"),(2,"28 Feb"),(3,"03 Mar")],[])
---
 placedTimeLabelDiscontinuous :: PosDiscontinuous -> Maybe Text -> Int -> [UTCTime] -> ([(Int, Text)], [UTCTime])
 placedTimeLabelDiscontinuous posd format n ts = (zip (fst <$> inds') labels, rem')
   where
@@ -231,32 +232,32 @@ placedTimeLabelDiscontinuous posd format n ts = (zip (fst <$> inds') labels, rem
 
 autoFormat :: TimeGrain -> String
 autoFormat (Years x)
-    | x == 1 = "%b %Y"
-    | otherwise = "%Y"
+  | x == 1 = "%b %Y"
+  | otherwise = "%Y"
 autoFormat (Months _) = "%d %b %Y"
 autoFormat (Days _) = "%d %b %y"
 autoFormat (Hours x)
-    | x > 3 = "%d/%m/%y %R"
-    | otherwise = "%R"
+  | x > 3 = "%d/%m/%y %R"
+  | otherwise = "%R"
 autoFormat (Minutes _) = "%R"
 autoFormat (Seconds _) = "%R%Q"
 
 matchTimes :: [UTCTime] -> L.Fold UTCTime ([UTCTime], [(Int, UTCTime)])
-matchTimes ticks = L.Fold step begin (\(p,x,_) -> (p,reverse x))
+matchTimes ticks = L.Fold step begin (\(p, x, _) -> (p, reverse x))
   where
-    begin = (ticks,[],0)
+    begin = (ticks, [], 0)
     step ([], xs, n) _ = ([], xs, n)
-    step (p:ps, xs, n) a
-        | p == a = step (ps, (n,p):xs, n) a
-        | p > a = (p:ps, xs, n + 1)
-        | otherwise = step (ps, (n - 1,p):xs, n) a
+    step (p : ps, xs, n) a
+      | p == a = step (ps, (n, p) : xs, n) a
+      | p > a = (p : ps, xs, n + 1)
+      | otherwise = step (ps, (n - 1, p) : xs, n) a
 
-laterTimes :: [(Int, a)] -> [(Int,a)]
+laterTimes :: [(Int, a)] -> [(Int, a)]
 laterTimes [] = []
 laterTimes [x] = [x]
-laterTimes (x:xs) = L.fold (L.Fold step (x,[]) (\(x0,x1) -> reverse $ x0:x1)) xs
+laterTimes (x : xs) = L.fold (L.Fold step (x, []) (\(x0, x1) -> reverse $ x0 : x1)) xs
   where
-    step ((n,a), rs) (na, aa) = if na == n then ((na,aa),rs) else ((na,aa),(n,a):rs)
+    step ((n, a), rs) (na, aa) = if na == n then ((na, aa), rs) else ((na, aa), (n, a) : rs)
 
 -- | compute a sensible TimeGrain and list of UTCTimes
 --
@@ -268,10 +269,9 @@ laterTimes (x:xs) = L.fold (L.Fold step (x,[]) (\(x0,x1) -> reverse $ x0:x1)) xs
 --
 -- >>>  sensibleTimeGrid UpperPos 2 (UTCTime (fromGregorian 2017 1 1) 0, UTCTime (fromGregorian 2017 12 30) 0)
 -- (Months 6,[2017-06-30 00:00:00 UTC,2017-12-31 00:00:00 UTC])
--- 
+--
 -- >>>sensibleTimeGrid LowerPos 2 (UTCTime (fromGregorian 2017 1 1) 0, UTCTime (fromGregorian 2017 12 30) 0)
 -- (Months 6,[2016-12-31 00:00:00 UTC,2017-06-30 00:00:00 UTC])
---
 sensibleTimeGrid :: Pos -> Int -> (UTCTime, UTCTime) -> (TimeGrain, [UTCTime])
 sensibleTimeGrid p n (l, u) = (grain, ts)
   where
@@ -281,27 +281,27 @@ sensibleTimeGrid p n (l, u) = (grain, ts)
     last' = ceilingGrain grain u
     n' = round $ toDouble (diffUTCTime last' first') / grainSecs grain :: Integer
     posns = case p of
-      OuterPos -> take (fromIntegral $ n'+1)
-      InnerPos -> drop (if first'==l then 0 else 1) . take (fromIntegral $ n' + if last'==u then 1 else 0)
+      OuterPos -> take (fromIntegral $ n' + 1)
+      InnerPos -> drop (if first' == l then 0 else 1) . take (fromIntegral $ n' + if last' == u then 1 else 0)
       UpperPos -> drop 1 . take (fromIntegral $ n' + 1)
       LowerPos -> take (fromIntegral n')
       MidPos -> take (fromIntegral n')
     ts = case p of
-      MidPos -> take (fromIntegral n') $ addHalfGrain grain . (\x -> addGrain grain x first') <$> [0..]
-      _ -> posns $ (\x -> addGrain grain x first') <$> [0..]
+      MidPos -> take (fromIntegral n') $ addHalfGrain grain . (\x -> addGrain grain x first') <$> [0 ..]
+      _ -> posns $ (\x -> addGrain grain x first') <$> [0 ..]
 
 -- come up with a sensible step for a grid over a Field
 stepSensible ::
-     (Fractional a, RealFrac a, Floating a)
-  => Pos
-  -> a
-  -> Int
-  -> a
+  (Fractional a, RealFrac a, Floating a) =>
+  Pos ->
+  a ->
+  Int ->
+  a
 stepSensible tp span' n =
-  step +
-  if tp == MidPos
-    then step / 2
-    else 0
+  step
+    + if tp == MidPos
+      then step / 2
+      else 0
   where
     step' = 10 ^^ (floor (logBase 10 (span' / fromIntegral n)) :: Integer)
     err = fromIntegral n / span' * step'
@@ -314,16 +314,16 @@ stepSensible tp span' n =
 -- come up with a sensible step for a grid over a Field, where sensible means the 18th century
 -- practice of using multiples of 3 to round
 stepSensible3 ::
-     (Fractional a, Floating a, RealFrac a)
-  => Pos
-  -> a
-  -> Int
-  -> a
+  (Fractional a, Floating a, RealFrac a) =>
+  Pos ->
+  a ->
+  Int ->
+  a
 stepSensible3 tp span' n =
-  step +
-  if tp == MidPos
-    then step / 2
-    else 0
+  step
+    + if tp == MidPos
+      then step / 2
+      else 0
   where
     step' = 10 ^^ (floor (logBase 10 (span' / fromIntegral n)) :: Integer)
     err = fromIntegral n / span' * step'
