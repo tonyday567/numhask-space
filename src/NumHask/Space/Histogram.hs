@@ -4,7 +4,7 @@
 {-# OPTIONS_GHC -Wall #-}
 
 -- | A histogram, if you squint, is a series of contiguous ranges, annotated with values.
-module NumHask.Histogram
+module NumHask.Space.Histogram
   ( Histogram (..),
     DealOvers (..),
     fill,
@@ -22,7 +22,9 @@ import qualified Data.List
 import qualified Data.Map as Map
 import Data.Maybe
 import Data.TDigest
-import NumHask.Space
+import NumHask.Space.Range
+import NumHask.Space.Rect
+import NumHask.Space.Types
 import Prelude
 
 -- | This Histogram is a list of contiguous boundaries (a boundary being the lower edge of one bucket and the upper edge of another), and a value (usually a count) for each bucket, represented here as a map

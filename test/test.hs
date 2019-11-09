@@ -8,9 +8,9 @@ import Prelude
 main :: IO ()
 main =
   doctest
-    [ "src/NumHask/Histogram.hs",
-      "src/NumHask/Point.hs",
-      "src/NumHask/Range.hs",
-      "src/NumHask/Rect.hs",
+    [ "src/NumHask/Space/Histogram.hs",
+      "src/NumHask/Space/Point.hs",
+      "src/NumHask/Space/Range.hs",
+      "src/NumHask/Space/Rect.hs",
       "src/NumHask/Space/Time.hs"
     ]

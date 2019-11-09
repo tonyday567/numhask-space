@@ -13,7 +13,7 @@
 {-# OPTIONS_GHC -Wincomplete-patterns #-}
 
 -- | a two-dimensional plane, implemented as a composite of a 'Point' of 'Range's.
-module NumHask.Rect
+module NumHask.Space.Rect
   ( Rect (..),
     pattern Rect,
     pattern Ranges,
@@ -42,8 +42,8 @@ import Data.List.NonEmpty
 import Data.Semigroup
 import GHC.Exts
 import GHC.Generics (Generic)
-import NumHask.Point
-import NumHask.Range
+import NumHask.Space.Point
+import NumHask.Space.Range
 import NumHask.Space.Types
 import Prelude
 

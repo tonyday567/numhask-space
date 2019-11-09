@@ -25,7 +25,7 @@ import Data.Text (Text)
 import Data.Time
 import GHC.Base (String)
 import GHC.Generics
-import NumHask.Space
+import NumHask.Space.Types
 import Prelude
 
 -- | parse text as per iso8601

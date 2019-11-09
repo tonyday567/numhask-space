@@ -13,21 +13,31 @@ module NumHask.Space
 
     -- * Instances
     -- $instances
-    module NumHask.Point,
-    module NumHask.Range,
-    module NumHask.Rect,
+    module NumHask.Space.Point,
+    module NumHask.Space.Range,
+    module NumHask.Space.Rect,
+    module NumHask.Space.Time,
+    module NumHask.Space.Histogram,
   )
 where
 
-import NumHask.Point hiding ()
-import NumHask.Range hiding ()
-import NumHask.Rect hiding ()
+import NumHask.Space.Point hiding ()
+import NumHask.Space.Range hiding ()
+import NumHask.Space.Rect hiding ()
+import NumHask.Space.Time hiding ()
+import NumHask.Space.Histogram hiding ()
 import NumHask.Space.Types hiding ()
 
 -- $space
 -- The final frontier.
 
 -- $instances
--- A Range is a Space of numbers.
+-- Space is an interesting cross-section of many programming domains.
 --
--- A Rect is a Space of Points.
+-- - A Range is a Space of numbers.
+--
+-- - A Rect is a Space of Points.
+--
+-- - A time span is a space containing moments of time.
+--
+-- - A histogram is a divided Range with a count of elements within each division.

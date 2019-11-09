@@ -52,11 +52,11 @@ library
   exposed-modules:
     NumHask.Space
     NumHask.Space.Types
-    NumHask.Range
-    NumHask.Rect
-    NumHask.Point
+    NumHask.Space.Range
+    NumHask.Space.Rect
+    NumHask.Space.Point
     NumHask.Space.Time
-    NumHask.Histogram
+    NumHask.Space.Histogram
   other-modules:
   default-language: Haskell2010
 

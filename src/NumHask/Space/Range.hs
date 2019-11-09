@@ -15,7 +15,7 @@
 {-# OPTIONS_GHC -Wall #-}
 
 -- | A Space containing numerical elements
-module NumHask.Range
+module NumHask.Space.Range
   ( Range (..),
     gridSensible,
   )

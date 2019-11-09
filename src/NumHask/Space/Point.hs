@@ -8,7 +8,7 @@
 {-# OPTIONS_GHC -Wall #-}
 
 -- | A 2-dimensional point.
-module NumHask.Point
+module NumHask.Space.Point
   ( Point (..),
     rotate,
     gridP,
@@ -20,7 +20,7 @@ import Data.Distributive as D
 import Data.Functor.Classes
 import Data.Functor.Rep
 import GHC.Generics (Generic)
-import NumHask.Range
+import NumHask.Space.Range
 import NumHask.Space.Types
 import Text.Show
 import Prelude
