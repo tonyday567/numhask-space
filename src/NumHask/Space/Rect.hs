@@ -1,14 +1,9 @@
-{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE InstanceSigs #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wall #-}
 {-# OPTIONS_GHC -Wincomplete-patterns #-}
 
@@ -84,13 +79,11 @@ newtype Rect a
 -- | pattern of Rect lowerx upperx lowery uppery
 pattern Rect :: a -> a -> a -> a -> Rect a
 pattern Rect a b c d = Rect' (Compose (Point (Range a b) (Range c d)))
-
 {-# COMPLETE Rect #-}
 
 -- | pattern of Ranges xrange yrange
 pattern Ranges :: Range a -> Range a -> Rect a
 pattern Ranges a b = Rect' (Compose (Point a b))
-
 {-# COMPLETE Ranges #-}
 
 instance (Show a) => Show (Rect a) where

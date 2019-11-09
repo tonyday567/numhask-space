@@ -1,17 +1,5 @@
-{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE ExtendedDefaultRules #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE InstanceSigs #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE RebindableSyntax #-}
-{-# LANGUAGE RoleAnnotations #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wall #-}
 
 -- | A Space containing numerical elements
@@ -29,7 +17,6 @@ import Data.Functor.Classes
 import Data.Functor.Rep
 import Data.Semigroup.Foldable (Foldable1 (..))
 import Data.Semigroup.Traversable (Traversable1 (..))
-import Data.String
 import GHC.Generics (Generic)
 import NumHask.Space.Types as S
 import Prelude
