@@ -14,7 +14,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wall #-}
 
--- | A Space containing numerical elements, with a semigroup based on a (convex hull) union
+-- | A Space containing numerical elements
 module NumHask.Range
   ( Range (..),
     gridSensible,
@@ -43,6 +43,7 @@ import Prelude
 -- Range -1 1
 --
 -- Num instance based on interval arithmetic (with Ranges normalising to lower ... upper)
+--
 -- >>> a + a
 -- Range -2 2
 -- >>> a * a
@@ -52,14 +53,17 @@ import Prelude
 --
 -- Ranges are very useful in shifting a bunch of numbers from one Range to another.
 -- eg project 0.5 from the range 0 to 1 to the range 1 to 4
+--
 -- >>> project (Range 0 1) (Range 1 4) 0.5
 -- 2.5
 --
 -- Create an equally spaced grid including outer bounds over a Range
+--
 -- >>> grid OuterPos (Range 0 10) 5
 -- [0.0,2.0,4.0,6.0,8.0,10.0]
 --
 -- divide up a Range into equal-sized sections
+--
 -- >>> gridSpace (Range 0 1) 4
 -- [Range 0.0 0.25,Range 0.25 0.5,Range 0.5 0.75,Range 0.75 1.0]
 data Range a = Range a a
@@ -152,7 +156,6 @@ instance (Eq a, Ord a) => Semigroup (Range a) where
   (<>) a b = getUnion (Union a <> Union b)
 
 -- | Numeric algebra based on Interval arithmetic
--- https://en.wikipedia.org/wiki/Interval_arithmetic
 instance (Num a, Eq a, Ord a) => Num (Range a) where
 
   (Range l u) + (Range l' u') = space1 [l + l', u + u']
@@ -181,6 +184,7 @@ stepSensible tp span' n =
       | otherwise = step'
 
 -- | a grid with human sensible (rounded) values
+--
 -- >>> gridSensible OuterPos False (Range (-12.0) 23.0) 6
 -- [-15.0,-10.0,-5.0,0.0,5.0,10.0,15.0,20.0,25.0]
 gridSensible ::

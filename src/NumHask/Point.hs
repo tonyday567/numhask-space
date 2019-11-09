@@ -29,7 +29,8 @@ import Prelude
 -- 
 
 -- | A 2-dim point of a's
--- a Point is functorial over both arguments, and is a Num instance.
+--
+-- A Point is functorial over both arguments, and is a Num instance.
 --
 -- >>> let p = Point 1 1
 -- >>> p + p
@@ -38,6 +39,7 @@ import Prelude
 -- Point 2 2
 --
 -- A major reason for this bespoke treatment of a point is that Points do not have maximums and minimums but they form a lattice, and this is useful for folding points to find out the (rectangular) Space they occupy.
+--
 -- >>> Point 0 1 /\ Point 1 0
 -- Point 0 0
 -- >>> Point 0 1 \/ Point 1 0
@@ -133,6 +135,7 @@ instance (Ord a) => Lattice (Point a) where
   (/\) (Point x y) (Point x' y') = Point (min x x') (min y y')
 
 -- | rotate a point by x degrees relative to the origin
+--
 -- >>> rotate 90 (Point 0 1)
 -- Point 1.0 6.123233995736766e-17
 rotate :: (Floating a) => a -> Point a -> Point a
@@ -141,6 +144,7 @@ rotate d (Point x y) = Point (x * cos d' + y * sin d') (y * cos d' - x * sin d')
     d' = d * pi / 180
 
 -- | Create Points for a formulae y = f(x) across an x range
+--
 -- >>> gridP (**2) (Range 0 4) 4
 -- [Point 0.0 0.0,Point 1.0 1.0,Point 2.0 4.0,Point 3.0 9.0,Point 4.0 16.0]
 gridP :: (Ord a, Fractional a) => (a -> a) -> Range a -> Int -> [Point a]

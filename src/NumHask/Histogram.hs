@@ -25,9 +25,9 @@ import Data.TDigest
 import NumHask.Space
 import Prelude
 
--- | A Histogram is a list of contiguous boundaries (a boundary being the lower edge of one bucket and the upper edge of another), and a value (usually a count) for each bucket
+-- | This Histogram is a list of contiguous boundaries (a boundary being the lower edge of one bucket and the upper edge of another), and a value (usually a count) for each bucket, represented here as a map
 --
--- Overs and Unders are contained in key=0 and key=length cut
+-- Overs and Unders are contained in key = 0 and key = length cuts
 data Histogram
   = Histogram
       { cuts :: [Double], -- bucket boundaries

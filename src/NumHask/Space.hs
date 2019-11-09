@@ -1,27 +1,33 @@
 {-# OPTIONS_GHC -Wall #-}
 
--- | a continuous set of numbers
--- mathematics does not define a space, so library devs are free to experiment.
--- https://en.wikipedia.org/wiki/Interval_(mathematics)
+-- | A continuous set of numbers.
+--
+-- Mathematics does not define a space, leaving library devs to experiment.
+--
+-- https://en.wikipedia.org/wiki/Space_(mathematics)
+--
 module NumHask.Space
   ( -- * Space
     -- $space
     module NumHask.Space.Types,
 
     -- * Instances
+    -- $instances
     module NumHask.Point,
     module NumHask.Range,
     module NumHask.Rect,
   )
 where
 
-import NumHask.Point
-import NumHask.Range
-import NumHask.Rect
-import NumHask.Space.Types
+import NumHask.Point hiding ()
+import NumHask.Range hiding ()
+import NumHask.Rect hiding ()
+import NumHask.Space.Types hiding ()
 
 -- $space
 -- The final frontier.
 
 -- $instances
--- Some concrete data types that are usseful in charting.
+-- A Range is a Space of numbers.
+--
+-- A Rect is a Space of Points.

@@ -194,8 +194,9 @@ corners4 (Rect x z y w) =
     Point z w
   ]
 
--- | project a Rect from an old range to a new 1
--- A Rect is defined as a Space over Points but it can also be seen as a Space over it's own type (Rect)
+-- | project a Rect from an old Space (Rect) to a new one.
+--
+-- The Space instance of Rect uses Points as Elements, but a Rect can also be a Space over Rects.
 --
 -- >>> projectRect (Rect 0 1 (-1) 0) (Rect 0 4 0 8) (Rect 0.25 0.75 (-0.75) (-0.25))
 -- Rect 1.0 3.0 2.0 6.0
@@ -288,18 +289,21 @@ gridR f r g = (\x -> Rect (x - tick / 2) (x + tick / 2) 0 (f x)) <$> grid MidPos
     tick = width r / fromIntegral g
 
 -- | Create values c for Rects data for a formulae c = f(x,y)
+--
 -- >>> gridF (\(Point x y) -> x * y) (Rect 0 4 0 4) (Point 2 2)
 -- [(Rect 0.0 2.0 0.0 2.0,1.0),(Rect 0.0 2.0 2.0 4.0,3.0),(Rect 2.0 4.0 0.0 2.0,3.0),(Rect 2.0 4.0 2.0 4.0,9.0)]
 gridF :: (Ord a, Fractional a) => (Point a -> b) -> Rect a -> Grid (Rect a) -> [(Rect a, b)]
 gridF f r g = (\x -> (x, f (mid x))) <$> gridSpace r g
 
 -- | convert a ratio (eg x:1) to a Rect with a height of one.
+--
 -- >>> aspect 2
 -- Rect -1.0 1.0 -0.5 0.5
 aspect :: (Fractional a) => a -> Rect a
 aspect a = Rect (a * (-0.5)) (a * 0.5) (-0.5) 0.5
 
 -- | convert a Rect to a ratio
+--
 -- >>> ratio (Rect (-1) 1 (-0.5) 0.5)
 -- 2.0
 ratio :: (Fractional a) => Rect a -> a
