@@ -30,6 +30,8 @@ module NumHask.Space.Types
   )
 where
 
+import Prelude
+
 -- | Space is a continuous range of numbers that contains elements and has an upper and lower value.
 class Space s where
 

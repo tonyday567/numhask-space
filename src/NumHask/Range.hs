@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE RoleAnnotations #-}
@@ -13,7 +14,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wall #-}
 
--- | A Space with no empty, and a semigroup based on (convex hull) Union
+-- | A Space containing numerical elements, with a semigroup based on a (convex hull) union
 module NumHask.Range
   ( Range (..),
     gridSensible,
@@ -28,30 +29,39 @@ import Data.Functor.Classes
 import Data.Functor.Rep
 import Data.Semigroup.Foldable (Foldable1 (..))
 import Data.Semigroup.Traversable (Traversable1 (..))
+import Data.String
 import GHC.Generics (Generic)
 import NumHask.Space.Types as S
 import Prelude
 
 -- $setup
--- >>> :set -XNoImplicitPrelude
--- >>> :set -XFlexibleContexts
 
 -- | A continuous range over type a
 --
 -- >>> let a = Range (-1) 1
 -- >>> a
 -- Range -1 1
--- >>> fmap (+1) (Range 1 2)
+--
+-- Num instance based on interval arithmetic (with Ranges normalising to lower ... upper)
+-- >>> a + a
+-- Range -2 2
+-- >>> a * a
+-- Range -1 1
+-- >>> (+1) <$> (Range 1 2)
 -- Range 2 3
 --
+-- Ranges are very useful in shifting a bunch of numbers from one Range to another.
+-- eg project 0.5 from the range 0 to 1 to the range 1 to 4
 -- >>> project (Range 0 1) (Range 1 4) 0.5
 -- 2.5
--- >>> grid NumHask.Space.OuterPos (Range 0 10) 5
+--
+-- Create an equally spaced grid including outer bounds over a Range
+-- >>> grid OuterPos (Range 0 10) 5
 -- [0.0,2.0,4.0,6.0,8.0,10.0]
+--
+-- divide up a Range into equal-sized sections
 -- >>> gridSpace (Range 0 1) 4
 -- [Range 0.0 0.25,Range 0.25 0.5,Range 0.5 0.75,Range 0.75 1.0]
--- >>> gridSensible OuterPos (Range (-12.0) 23.0) 6
--- [-10.0,-5.0,0.0,5.0,10.0,15.0,20.0]
 data Range a = Range a a
   deriving (Eq, Generic)
 
@@ -171,6 +181,8 @@ stepSensible tp span' n =
       | otherwise = step'
 
 -- | a grid with human sensible (rounded) values
+-- >>> gridSensible OuterPos False (Range (-12.0) 23.0) 6
+-- [-15.0,-10.0,-5.0,0.0,5.0,10.0,15.0,20.0,25.0]
 gridSensible ::
   (Ord a, RealFrac a, Floating a, Integral b) =>
   Pos ->

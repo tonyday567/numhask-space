@@ -50,18 +50,13 @@
 # Ignore some builtin hints
 # - ignore: {name: Use let}
 # - ignore: {name: Use const, within: SpecialModule} # Only within certain modules
-- ignore: {name: Use tan, within: NumHask.Algebra.Field}
-- ignore: {name: Use logBase, within: NumHask.Algebra.Field}
 - ignore: {name: Use -}
-- ignore: {name: Eta reduce, within: NumHask.Algebra.Metric}
-- ignore: {name: Redundant lambda, within: NumHask.Hedgehog.Prop}
-- ignore: {name: Reduce duplication, within: NumHask.Hedgehog.Prop}
-- ignore: {name: Redundant lambda, within: NumHask.Hedgehog.Prop.Space}
-- ignore: {name: Reduce duplication, within: NumHask.Hedgehog.Prop.Space}
-- ignore: {name: Eta reduce, within: NumHask.Data.Pair}
 
-# Define some custom infix operators
-# - fixity: infixr 3 ~^#^~
+# Replace a $ b $ c with a . b $ c
+- group: {name: dollar, enabled: true}
+
+# Generalise map to fmap, ++ to <>
+- group: {name: generalise, enabled: true}
 
 # To generate a suitable file for HLint do:
 # $ hlint --default > .hlint.yaml

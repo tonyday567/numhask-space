@@ -75,7 +75,7 @@ fromDouble x =
    in diffUTCTime t1 t0
 
 fromDouble' :: Double -> DiffTime
-fromDouble' d = toEnum $ fromEnum $ d * ((10 :: Double) ^ (12 :: Integer))
+fromDouble' d = toEnum . fromEnum $ d * ((10 :: Double) ^ (12 :: Integer))
 
 -- | add a TimeGrain to a UTCTime
 --
@@ -103,7 +103,7 @@ addGrain g@(Seconds _) x d = addUTCTime (fromDouble (fromIntegral x * grainSecs 
 addHalfGrain :: TimeGrain -> UTCTime -> UTCTime
 addHalfGrain (Years n) (UTCTime d t) =
   UTCTime
-    ( addDays (-1) $ (if m' == 1 then addGregorianMonthsClip 6 else id) $
+    ( addDays (-1) . (if m' == 1 then addGregorianMonthsClip 6 else id) $
         addGregorianYearsClip d' (addDays 1 d)
     )
     t
@@ -112,7 +112,7 @@ addHalfGrain (Years n) (UTCTime d t) =
 addHalfGrain (Months n) (UTCTime d t) =
   UTCTime
     ( addDays (if m' == 1 then 15 else 0 {- sue me -})
-        $ addDays (-1)
+        . addDays (-1)
         $ addGregorianMonthsClip (fromIntegral d') (addDays 1 d)
     )
     t

@@ -1,9 +1,9 @@
 name: numhask-space
-version: 0.2.0
+version: 0.3.0
 synopsis:
   numerical spaces
 description:
-  Spaces as higher-kinded numbers.
+  Spaces and the numerical elements that inhabit them.
 category:
   mathematics
 homepage:

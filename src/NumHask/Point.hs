@@ -26,10 +26,22 @@ import Text.Show
 import Prelude
 
 -- $setup
--- >>> :set -XNoImplicitPrelude
--- >>> :set -XFlexibleContexts
+-- 
 
 -- | A 2-dim point of a's
+-- a Point is functorial over both arguments, and is a Num instance.
+--
+-- >>> let p = Point 1 1
+-- >>> p + p
+-- Point 2 2
+-- >>> (2*) <$> p
+-- Point 2 2
+--
+-- A major reason for this bespoke treatment of a point is that Points do not have maximums and minimums but they form a lattice, and this is useful for folding points to find out the (rectangular) Space they occupy.
+-- >>> Point 0 1 /\ Point 1 0
+-- Point 0 0
+-- >>> Point 0 1 \/ Point 1 0
+-- Point 1 1
 data Point a
   = Point a a
   deriving (Eq, Generic)
@@ -79,28 +91,25 @@ instance (Bounded a) => Bounded (Point a) where
 
   maxBound = Point maxBound maxBound
 
-unaryOp :: (a -> a) -> (Point a -> Point a)
-unaryOp f (Point a b) = Point (f a) (f b)
-
 instance (Num a) => Num (Point a) where
 
   (Point a0 b0) + (Point a1 b1) = Point (a0 + a1) (b0 + b1)
 
-  negate = unaryOp negate
+  negate = fmap negate
 
   (Point a0 b0) * (Point a1 b1) = Point (a0 * a1) (b0 * b1)
 
-  signum = unaryOp signum
+  signum = fmap signum
 
-  abs = unaryOp abs
+  abs = fmap abs
 
   fromInteger x = Point (fromInteger x) (fromInteger x)
 
 instance (Fractional a) => Fractional (Point a) where
 
-  fromRational x = Point (fromRational x) 0
+  fromRational x = Point (fromRational x) (fromRational x) 
 
-  recip = unaryOp recip
+  recip = fmap recip
 
 instance Distributive Point where
   collect f x = Point (getL . f <$> x) (getR . f <$> x)
@@ -124,11 +133,15 @@ instance (Ord a) => Lattice (Point a) where
   (/\) (Point x y) (Point x' y') = Point (min x x') (min y y')
 
 -- | rotate a point by x degrees relative to the origin
+-- >>> rotate 90 (Point 0 1)
+-- Point 1.0 6.123233995736766e-17
 rotate :: (Floating a) => a -> Point a -> Point a
 rotate d (Point x y) = Point (x * cos d' + y * sin d') (y * cos d' - x * sin d')
   where
     d' = d * pi / 180
 
 -- | Create Points for a formulae y = f(x) across an x range
+-- >>> gridP (**2) (Range 0 4) 4
+-- [Point 0.0 0.0,Point 1.0 1.0,Point 2.0 4.0,Point 3.0 9.0,Point 4.0 16.0]
 gridP :: (Ord a, Fractional a) => (a -> a) -> Range a -> Int -> [Point a]
 gridP f r g = (\x -> Point x (f x)) <$> grid OuterPos r g
