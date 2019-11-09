@@ -34,6 +34,15 @@ where
 import Prelude
 
 -- | Space is a continuous range of numbers that contains elements and has an upper and lower value.
+--
+-- > a `union` b == b `union` a
+-- > a `intersection` b == b `intersection` a
+-- > (a `union` b) `intersection` c == (a `intersection` b) `union` (a `intersection` c)
+-- > (a `intersection` b) `union` c == (a `union` b) `intersection` (a `union` c)
+-- > norm (norm a) = norm a
+-- > a |>| b == b |<| a
+-- > a |.| singleton a
+
 class Space s where
 
   -- | the underlying element in the space
@@ -113,6 +122,9 @@ class Space s where
     lower s1 <= upper s0
 
 -- | is a space contained within another?
+--
+-- > (a `union` b) `contains` a
+-- > (a `union` b) `contains` b
 contains :: (Space s) => s -> s -> Bool
 contains s0 s1 =
   lower s1 |.| s0
@@ -149,6 +161,9 @@ instance (Space a) => Semigroup (Intersection a) where
   (<>) (Intersection a) (Intersection b) = Intersection (a `union` b)
 
 -- | a space that can be divided neatly
+--
+-- > space1 (grid OuterPos s g) == s
+-- > getUnion (sconcat (Union <$> (gridSpace s g))) == s
 class (Space s, Num (Element s)) => FieldSpace s where
 
   type Grid s :: *
@@ -160,9 +175,19 @@ class (Space s, Num (Element s)) => FieldSpace s where
   gridSpace :: s -> Grid s -> [s]
 
 -- | Pos suggests where points should be placed in forming a grid across a field space.
-data Pos = OuterPos | InnerPos | LowerPos | UpperPos | MidPos deriving (Show, Eq)
+data Pos =
+  -- | include boundaries
+  OuterPos |
+  -- | don't include boundaries
+  InnerPos |
+  -- | include the lower boundary
+  LowerPos |
+  -- | include the upper boundary
+  UpperPos |
+  -- | use the mid-point of the space
+  MidPos deriving (Show, Eq)
 
--- | mid-point of the space
+-- | middle element of the space
 mid :: (Space s, Fractional (Element s)) => s -> Element s
 mid s = (lower s + upper s) / 2.0
 
@@ -171,14 +196,12 @@ mid s = (lower s + upper s) / 2.0
 -- > project o n (lower o) = lower n
 -- > project o n (upper o) = upper n
 -- > project a a x = x
--- > project mempty one zero = NaN
--- > project one mempty zero = Infinity
--- > project one mempty one = NaN
 project :: (Space s, Fractional (Element s)) => s -> s -> Element s -> Element s
 project s0 s1 p =
   ((p - lower s0) / (upper s0 - lower s0)) * (upper s1 - lower s1) + lower s1
 
 -- | the containing space of a non-empty Traversable
+-- > all $ space1 a `contains` <$> a
 space1 :: (Space s, Traversable f) => f (Element s) -> s
 space1 = foldr1 union . fmap singleton
 
@@ -216,10 +239,10 @@ widenEps ::
   s
 widenEps accuracy = widen (accuracy * 1e-6)
 
--- | scale a Space
+-- | Scale a Space. (scalar multiplication)
 scale :: (Num (Element s), Space s) => Element s -> s -> s
 scale e s = (e * lower s) ... (e * upper s)
 
--- | move a Space
+-- | Move a Space. (scalar addition)
 move :: (Num (Element s), Space s) => Element s -> s -> s
 move e s = (e + lower s) ... (e + upper s)
