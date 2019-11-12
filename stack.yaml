@@ -3,5 +3,6 @@ resolver: lts-14.13
 packages:
   - .
 
-extra-deps: []
+extra-deps:
+  - tdigest-0.2.1
 
