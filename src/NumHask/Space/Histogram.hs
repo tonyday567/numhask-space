@@ -1,5 +1,4 @@
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -Wall #-}
 
 -- | A histogram, if you squint, is a series of contiguous ranges, annotated with values.
@@ -7,6 +6,7 @@ module NumHask.Space.Histogram
   ( Histogram (..),
     DealOvers (..),
     fill,
+    cutI,
     regular,
     makeRects,
     regularQuantiles,
@@ -17,6 +17,8 @@ module NumHask.Space.Histogram
 where
 
 import qualified Control.Foldl as L
+import Data.Bool
+import Data.Foldable
 import qualified Data.List
 import qualified Data.Map as Map
 import Data.Maybe
@@ -43,15 +45,15 @@ data DealOvers = IgnoreOvers | IncludeOvers Double
 --
 -- >>> fill [0,50,100] [1..100]
 -- Histogram {cuts = [0.0,50.0,100.0], values = fromList [(1,50.0),(2,50.0)]}
-fill :: (Functor f, Foldable f) => [Double] -> f Double -> Histogram
-fill cs xs = Histogram cs (histMap cs xs)
+fill :: (Foldable f) => [Double] -> f Double -> Histogram
+fill cs xs = Histogram cs (foldl' (\x a -> Map.insertWith (+) (cutI cs a) 1 x) Map.empty xs)
+
+-- | find the index of the bucket the value is contained in.
+cutI :: (Ord a) => [a] -> a -> Int
+cutI bs n = go bs 0
   where
-    histMap cs' xs' =
-      L.fold count $
-        (\x -> L.fold countBool (fmap (x >) cs')) <$> xs'
-    count = L.premap (,1.0) countW
-    countBool = L.Fold (\x a -> x + if a then 1 else 0) 0 id
-    countW = L.Fold (\x (a, w) -> Map.insertWith (+) a w x) Map.empty id
+    go [] i = i
+    go (x:xs) i = bool i (go xs (i+1)) (n>x)
 
 -- | Make a histogram using n equally spaced cuts over the entire range of the data
 --
