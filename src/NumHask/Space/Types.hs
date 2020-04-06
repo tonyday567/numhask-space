@@ -27,7 +27,8 @@ module NumHask.Space.Types
   )
 where
 
-import Prelude
+import Protolude
+import Data.Foldable
 
 -- | Space is a continuous range of numbers that contains elements and has an upper and lower value.
 --
@@ -42,7 +43,7 @@ import Prelude
 class Space s where
 
   -- | the underlying element in the space
-  type Element s :: *
+  type Element s :: Type
 
   -- | lower boundary
   lower :: s -> Element s
@@ -162,7 +163,7 @@ instance (Space a) => Semigroup (Intersection a) where
 -- > getUnion (sconcat (Union <$> (gridSpace s g))) == s
 class (Space s, Num (Element s)) => FieldSpace s where
 
-  type Grid s :: *
+  type Grid s :: Type
 
   -- | create equally-spaced elements across a space
   grid :: Pos -> s -> Grid s -> [Element s]

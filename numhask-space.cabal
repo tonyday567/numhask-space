@@ -1,5 +1,5 @@
 name: numhask-space
-version: 0.3.0
+version: 0.3.1
 synopsis:
   numerical spaces
 description:
@@ -38,6 +38,11 @@ library
     -Wincomplete-record-updates
     -Wincomplete-uni-patterns
     -Wredundant-constraints
+  default-extensions:
+    NegativeLiterals
+    NoImplicitPrelude
+    OverloadedStrings
+    UnicodeSyntax
   build-depends:
       base >=4.7 && <5
     , adjunctions >=4.0 && <5
@@ -49,6 +54,7 @@ library
     , foldl >= 1.4.5 && <2
     , containers >= 0.6 && < 0.7
     , tdigest >= 0.2.1 && < 0.3
+    , protolude
   exposed-modules:
     NumHask.Space
     NumHask.Space.Types
