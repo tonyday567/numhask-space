@@ -18,7 +18,6 @@ import qualified Control.Foldl as L
 import qualified Data.Text as Text
 import Data.Text (Text)
 import Data.Time
-import NumHask.Space.Range
 import GHC.Generics
 import NumHask.Space.Types
 import Prelude

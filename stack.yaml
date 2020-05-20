@@ -1,8 +1,8 @@
-resolver: lts-15.6
+resolver: lts-15.13
 
 packages:
   - .
 
 extra-deps:
-  - tdigest-0.2.1
+  - protolude-0.3.0
 

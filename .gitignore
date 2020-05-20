@@ -5,3 +5,4 @@ TAGS
 /numhask-hedgehog/.dir-locals.el
 /numhask-space/.dir-locals.el
 /dist-newstyle
+/stack.yaml.lock

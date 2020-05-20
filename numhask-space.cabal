@@ -1,5 +1,5 @@
 name: numhask-space
-version: 0.3.1
+version: 0.4.0
 synopsis:
   numerical spaces
 description:
@@ -54,7 +54,7 @@ library
     , foldl >= 1.4.5 && <2
     , containers >= 0.6 && < 0.7
     , tdigest >= 0.2.1 && < 0.3
-    , protolude
+    , protolude >= 0.3.0 && < 0.4.0
   exposed-modules:
     NumHask.Space
     NumHask.Space.Types
