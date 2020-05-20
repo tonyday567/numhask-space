@@ -28,6 +28,7 @@ source-repository head
     git
   location:
     https://github.com/tonyday567/numhask-space
+
 library
   hs-source-dirs:
     src
