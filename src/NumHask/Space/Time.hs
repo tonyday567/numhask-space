@@ -11,6 +11,7 @@ module NumHask.Space.Time
     sensibleTimeGrid,
     PosDiscontinuous (..),
     placedTimeLabelDiscontinuous,
+    placedTimeLabelContinuous,
   )
 where
 
@@ -252,6 +253,25 @@ laterTimes [x] = [x]
 laterTimes (x : xs) = L.fold (L.Fold step (x, []) (\(x0, x1) -> reverse $ x0 : x1)) xs
   where
     step ((n, a), rs) (na, aa) = if na == n then ((na, aa), rs) else ((na, aa), (n, a) : rs)
+
+-- | A sensible time grid between two dates, projected onto (0,1) with no attempt to get finnicky.
+-- >>> placedTimeLabelContinuous PosIncludeBoundaries (Just "%d %b") 2 (UTCTime (fromGregorian 2017 12 6) 0, UTCTime (fromGregorian 2017 12 29) 0)
+-- 
+placedTimeLabelContinuous :: PosDiscontinuous -> Maybe Text -> Int -> (UTCTime, UTCTime) -> [(Double, Text)]
+placedTimeLabelContinuous posd format n (l,u) = zip tpsd labels
+  where
+    (grain, tps) = sensibleTimeGrid InnerPos n (l, u)
+    tps' = case posd of
+      PosInnerOnly -> tps
+      PosIncludeBoundaries -> [l] <> tps <> [u]
+    fmt = case format of
+      Just f -> Text.unpack f
+      Nothing -> autoFormat grain
+    labels = Text.pack . formatTime defaultTimeLocale fmt <$> tps'
+    l' = minimum tps'
+    u' = maximum tps'
+    r' = toDouble $ diffUTCTime u' l'
+    tpsd = (/r') . toDouble . flip diffUTCTime l <$> tps'
 
 -- | compute a sensible TimeGrain and list of UTCTimes
 --
