@@ -170,7 +170,7 @@ stepSensible tp span' n =
       | err <= 0.75 = 2.0 * step'
       | otherwise = step'
 
--- | a grid with human sensible (rounded) values
+-- | a grid for five-digits per limb species
 --
 -- >>> gridSensible OuterPos False (Range (-12.0) 23.0) 6
 -- [-15.0,-10.0,-5.0,0.0,5.0,10.0,15.0,20.0,25.0]

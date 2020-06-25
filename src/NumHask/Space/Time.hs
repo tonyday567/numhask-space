@@ -205,7 +205,8 @@ ceilingGrain (Seconds secs) u@(UTCTime _ t) = addUTCTime x u
 -- | whether to include lower and upper times
 data PosDiscontinuous = PosInnerOnly | PosIncludeBoundaries
 
--- | dates used for time series analysis or attached to charts are often discontinuous, but we want to smooth that reality over and show a continuous range on the axis
+-- | Dates used for time series analysis or attached to charts are often discontinuous, but we want to smooth that reality over and show a continuous range on the axis.
+--
 -- The assumption with getSensibleTimeGrid is that there is a list of discountinuous UTCTimes rather than a continuous range.  Output is a list of index points for the original [UTCTime] and label tuples, and a list of unused list elements.
 --
 -- >>> placedTimeLabelDiscontinuous PosIncludeBoundaries (Just "%d %b") 2 [UTCTime (fromGregorian 2017 12 6) 0, UTCTime (fromGregorian 2017 12 29) 0, UTCTime (fromGregorian 2018 1 31) 0, UTCTime (fromGregorian 2018 3 3) 0]
@@ -256,6 +257,7 @@ laterTimes (x : xs) = L.fold (L.Fold step (x, []) (\(x0, x1) -> reverse $ x0 : x
     step ((n, a), rs) (na, aa) = if na == n then ((na, aa), rs) else ((na, aa), (n, a) : rs)
 
 -- | A sensible time grid between two dates, projected onto (0,1) with no attempt to get finnicky.
+--
 -- >>> placedTimeLabelContinuous PosIncludeBoundaries (Just "%d %b") 2 (UTCTime (fromGregorian 2017 12 6) 0, UTCTime (fromGregorian 2017 12 29) 0)
 -- [(0.0,"06 Dec"),(0.43478260869565216,"16 Dec"),(0.8695652173913043,"26 Dec"),(1.0,"29 Dec")]
 --

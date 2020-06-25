@@ -74,6 +74,7 @@ class Space s where
       u = upper a `max` upper b
 
   -- | Normalise a space so that
+  --
   -- > lower a \/ upper a == lower a
   -- > lower a /\ upper a == upper a
   norm :: s -> s
@@ -192,12 +193,14 @@ mid s = (lower s + upper s) / 2.0
 --
 -- > project o n (lower o) = lower n
 -- > project o n (upper o) = upper n
+-- > project o n (mid o) = mid n
 -- > project a a x = x
 project :: (Space s, Fractional (Element s)) => s -> s -> Element s -> Element s
 project s0 s1 p =
   ((p - lower s0) / (upper s0 - lower s0)) * (upper s1 - lower s1) + lower s1
 
 -- | the containing space of a non-empty Traversable
+--
 -- > all $ space1 a `contains` <$> a
 space1 :: (Space s, Traversable f) => f (Element s) -> s
 space1 = foldr1 union . fmap singleton
