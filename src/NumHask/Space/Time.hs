@@ -22,6 +22,7 @@ import Data.Time
 import GHC.Generics
 import NumHask.Space.Types
 import Prelude
+import Data.List (nub)
 
 -- | parse text as per iso8601
 --
@@ -256,14 +257,15 @@ laterTimes (x : xs) = L.fold (L.Fold step (x, []) (\(x0, x1) -> reverse $ x0 : x
 
 -- | A sensible time grid between two dates, projected onto (0,1) with no attempt to get finnicky.
 -- >>> placedTimeLabelContinuous PosIncludeBoundaries (Just "%d %b") 2 (UTCTime (fromGregorian 2017 12 6) 0, UTCTime (fromGregorian 2017 12 29) 0)
--- 
+-- [(0.0,"06 Dec"),(0.43478260869565216,"16 Dec"),(0.8695652173913043,"26 Dec"),(1.0,"29 Dec")]
+--
 placedTimeLabelContinuous :: PosDiscontinuous -> Maybe Text -> Int -> (UTCTime, UTCTime) -> [(Double, Text)]
 placedTimeLabelContinuous posd format n (l,u) = zip tpsd labels
   where
     (grain, tps) = sensibleTimeGrid InnerPos n (l, u)
     tps' = case posd of
       PosInnerOnly -> tps
-      PosIncludeBoundaries -> [l] <> tps <> [u]
+      PosIncludeBoundaries -> nub $ [l] <> tps <> [u]
     fmt = case format of
       Just f -> Text.unpack f
       Nothing -> autoFormat grain

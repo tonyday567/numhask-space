@@ -5,3 +5,6 @@ numhask-space
 
 A numerical space haskell library.
 
+```
+stack build --test --file-watch
+```
