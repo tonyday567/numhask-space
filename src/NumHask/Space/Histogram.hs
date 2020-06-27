@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wall #-}
 
 -- | A histogram, if you squint, is a series of contiguous ranges, annotated with values.
@@ -17,16 +18,13 @@ module NumHask.Space.Histogram
 where
 
 import qualified Control.Foldl as L
-import Data.Bool
-import Data.Foldable
-import qualified Data.List
+import qualified Data.List as List
 import qualified Data.Map as Map
-import Data.Maybe
 import Data.TDigest
 import NumHask.Space.Range
 import NumHask.Space.Rect
 import NumHask.Space.Types
-import Prelude
+import Protolude
 
 -- | This Histogram is a list of contiguous boundaries (a boundary being the lower edge of one bucket and the upper edge of another), and a value (usually a count) for each bucket, represented here as a map
 --
@@ -53,7 +51,7 @@ cutI :: (Ord a) => [a] -> a -> Int
 cutI bs n = go bs 0
   where
     go [] i = i
-    go (x:xs) i = bool i (go xs (i+1)) (n>x)
+    go (x : xs) i = bool i (go xs (i + 1)) (n > x)
 
 -- | Make a histogram using n equally spaced cuts over the entire range of the data
 --
@@ -69,7 +67,7 @@ regular n xs = fill cs xs
 -- >>> makeRects IgnoreOvers (regular 4 [0..100])
 -- [Rect 0.0 25.0 0.0 0.25,Rect 25.0 50.0 0.0 0.25,Rect 50.0 75.0 0.0 0.25,Rect 75.0 100.0 0.0 0.25]
 makeRects :: DealOvers -> Histogram -> [Rect Double]
-makeRects o (Histogram cs counts) = Data.List.zipWith4 Rect x z y w'
+makeRects o (Histogram cs counts) = List.zipWith4 Rect x z y w'
   where
     y = repeat 0
     w =
@@ -87,9 +85,9 @@ makeRects o (Histogram cs counts) = Data.List.zipWith4 Rect x z y w'
     x = case o of
       IgnoreOvers -> cs
       IncludeOvers outw ->
-        [Data.List.head cs - outw]
+        [List.head cs - outw]
           <> cs
-          <> [Data.List.last cs + outw]
+          <> [List.last cs + outw]
     z = drop 1 x
 
 -- | approx regular n-quantiles

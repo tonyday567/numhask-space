@@ -2,8 +2,8 @@
 
 module Main where
 
+import Protolude
 import Test.DocTest
-import Prelude
 
 main :: IO ()
 main =

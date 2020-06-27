@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wall #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
@@ -15,14 +16,14 @@ module NumHask.Space.Time
   )
 where
 
+import Control.Category (id)
 import qualified Control.Foldl as L
-import qualified Data.Text as Text
-import Data.Text (Text)
-import Data.Time
-import GHC.Generics
-import NumHask.Space.Types
-import Prelude
 import Data.List (nub)
+import Data.String (String)
+import Data.Text (pack, unpack)
+import Data.Time
+import NumHask.Space.Types
+import Protolude
 
 -- | parse text as per iso8601
 --
@@ -32,7 +33,7 @@ import Data.List (nub)
 -- Just 2017-12-05 00:00:00 UTC
 parseUTCTime :: Text -> Maybe UTCTime
 parseUTCTime =
-  parseTimeM False defaultTimeLocale (iso8601DateFormat Nothing) . Text.unpack
+  parseTimeM False defaultTimeLocale (iso8601DateFormat Nothing) . unpack
 
 -- | a step in time
 data TimeGrain
@@ -223,9 +224,9 @@ placedTimeLabelDiscontinuous posd format n ts = (zip (fst <$> inds') labels, rem
     (rem', inds) = L.fold (matchTimes tps') ts
     inds' = laterTimes inds
     fmt = case format of
-      Just f -> Text.unpack f
+      Just f -> unpack f
       Nothing -> autoFormat grain
-    labels = Text.pack . formatTime defaultTimeLocale fmt . snd <$> inds'
+    labels = pack . formatTime defaultTimeLocale fmt . snd <$> inds'
 
 autoFormat :: TimeGrain -> String
 autoFormat (Years x)
@@ -260,22 +261,21 @@ laterTimes (x : xs) = L.fold (L.Fold step (x, []) (\(x0, x1) -> reverse $ x0 : x
 --
 -- >>> placedTimeLabelContinuous PosIncludeBoundaries (Just "%d %b") 2 (UTCTime (fromGregorian 2017 12 6) 0, UTCTime (fromGregorian 2017 12 29) 0)
 -- [(0.0,"06 Dec"),(0.43478260869565216,"16 Dec"),(0.8695652173913043,"26 Dec"),(1.0,"29 Dec")]
---
 placedTimeLabelContinuous :: PosDiscontinuous -> Maybe Text -> Int -> (UTCTime, UTCTime) -> [(Double, Text)]
-placedTimeLabelContinuous posd format n (l,u) = zip tpsd labels
+placedTimeLabelContinuous posd format n (l, u) = zip tpsd labels
   where
     (grain, tps) = sensibleTimeGrid InnerPos n (l, u)
     tps' = case posd of
       PosInnerOnly -> tps
       PosIncludeBoundaries -> nub $ [l] <> tps <> [u]
     fmt = case format of
-      Just f -> Text.unpack f
+      Just f -> unpack f
       Nothing -> autoFormat grain
-    labels = Text.pack . formatTime defaultTimeLocale fmt <$> tps'
+    labels = pack . formatTime defaultTimeLocale fmt <$> tps'
     l' = minimum tps'
     u' = maximum tps'
     r' = toDouble $ diffUTCTime u' l'
-    tpsd = (/r') . toDouble . flip diffUTCTime l <$> tps'
+    tpsd = (/ r') . toDouble . flip diffUTCTime l <$> tps'
 
 -- | compute a sensible TimeGrain and list of UTCTimes
 --

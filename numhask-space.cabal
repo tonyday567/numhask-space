@@ -44,17 +44,17 @@ library
     OverloadedStrings
     UnicodeSyntax
   build-depends:
-      base >=4.7 && <5
-    , adjunctions >=4.0 && <5
-    , semigroupoids >=5 && <6
-    , distributive >=0.2.2 && <1
-    , lattices >= 2.0.1 && <2.1
-    , time >= 1.8.0.2 && <2
-    , text >= 1.2.3.1 && <2
-    , foldl >= 1.4.5 && <2
-    , containers >= 0.6 && < 0.7
-    , tdigest >= 0.2.1 && < 0.3
-    , protolude >= 0.3.0 && < 0.4.0
+    adjunctions >=4.0 && <5,
+    base >=4.7 && <5,
+    containers >= 0.6 && < 0.7,
+    distributive >=0.2.2 && <1,
+    foldl >= 1.4.5 && <2,
+    lattices >= 2.0.1 && <2.1,
+    protolude >= 0.3.0 && < 0.4.0,
+    semigroupoids >=5 && <6,
+    tdigest >= 0.2.1 && < 0.3,
+    text >= 1.2.3.1 && <2,
+    time >= 1.8.0.2 && <2
   exposed-modules:
     NumHask.Space
     NumHask.Space.Types
@@ -70,10 +70,20 @@ test-suite test
   type: exitcode-stdio-1.0
   main-is: test.hs
   hs-source-dirs:
-      test
-  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
+    test
   build-depends:
-      base >=4.7 && <5
-    , doctest >= 0.16 && < 0.18
+    base >=4.7 && <5,
+    doctest >= 0.16 && < 0.18,
+    protolude >= 0.3
   default-language: Haskell2010
-
+  ghc-options:
+    -Wall
+    -Wcompat
+    -Wincomplete-record-updates
+    -Wincomplete-uni-patterns
+    -Wredundant-constraints
+  default-extensions:
+    NegativeLiterals
+    NoImplicitPrelude
+    OverloadedStrings
+    UnicodeSyntax

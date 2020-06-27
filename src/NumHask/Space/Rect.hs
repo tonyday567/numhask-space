@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wall #-}
@@ -29,18 +30,16 @@ module NumHask.Space.Rect
 where
 
 import Algebra.Lattice
-import Data.Bool (bool)
 import Data.Distributive as D
 import Data.Functor.Compose
 import Data.Functor.Rep
 import Data.List.NonEmpty
-import Data.Semigroup
 import GHC.Exts
-import GHC.Generics (Generic)
+import GHC.Show (show)
 import NumHask.Space.Point
 import NumHask.Space.Range
 import NumHask.Space.Types
-import Prelude
+import Protolude as P hiding (rotate)
 
 -- $setup
 
@@ -79,16 +78,18 @@ newtype Rect a
 -- | pattern of Rect lowerx upperx lowery uppery
 pattern Rect :: a -> a -> a -> a -> Rect a
 pattern Rect a b c d = Rect' (Compose (Point (Range a b) (Range c d)))
+
 {-# COMPLETE Rect #-}
 
 -- | pattern of Ranges xrange yrange
 pattern Ranges :: Range a -> Range a -> Rect a
 pattern Ranges a b = Rect' (Compose (Point a b))
+
 {-# COMPLETE Ranges #-}
 
 instance (Show a) => Show (Rect a) where
   show (Rect a b c d) =
-    "Rect " <> show a <> " " <> show b <> " " <> show c <> " " <> show d
+    "Rect " <> P.show a <> " " <> P.show b <> " " <> P.show c <> " " <> P.show d
 
 instance Distributive Rect where
   collect f x =
@@ -100,7 +101,6 @@ instance Distributive Rect where
       getD (Rect _ _ _ d) = d
 
 instance Representable Rect where
-
   type Rep Rect = (Bool, Bool)
 
   tabulate f =
@@ -115,7 +115,6 @@ instance (Ord a) => Semigroup (Rect a) where
   (<>) = union
 
 instance (Ord a) => Space (Rect a) where
-
   type Element (Rect a) = Point a
 
   union (Ranges a b) (Ranges c d) = Ranges (a `union` c) (b `union` d)
@@ -142,7 +141,6 @@ instance (Ord a) => Space (Rect a) where
   (|<|) s0 s1 = lower s1 `joinLeq` upper s0
 
 instance (Ord a, Fractional a, Num a) => FieldSpace (Rect a) where
-
   type Grid (Rect a) = Point Int
 
   grid o s n = (+ bool 0 (step / 2) (o == MidPos)) <$> posns
@@ -206,7 +204,6 @@ projectRect r0 r1 (Rect a b c d) = Rect a' b' c' d'
 
 -- | Numeric algebra based on interval arithmetioc for addition and unitRect and projection for multiplication
 instance (Fractional a, Num a, Eq a, Ord a) => Num (Rect a) where
-
   (+) = addRect
 
   negate = fmap negate

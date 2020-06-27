@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wall #-}
 
@@ -14,14 +15,13 @@ import Algebra.Lattice
 import Data.Distributive as D
 import Data.Functor.Classes
 import Data.Functor.Rep
-import GHC.Generics (Generic)
+import GHC.Show (show)
 import NumHask.Space.Range
 import NumHask.Space.Types
-import Text.Show
-import Prelude
+import Protolude as P hiding (rotate)
 
 -- $setup
--- 
+-- >>> :set -XNoImplicitPrelude
 
 -- | A 2-dim point of a's
 --
@@ -44,7 +44,7 @@ data Point a
   deriving (Eq, Generic)
 
 instance (Show a) => Show (Point a) where
-  show (Point a b) = "Point " <> Text.Show.show a <> " " <> Text.Show.show b
+  show (Point a b) = "Point " <> P.show a <> " " <> P.show b
 
 instance Functor Point where
   fmap f (Point a b) = Point (f a) (f b)
@@ -56,7 +56,6 @@ instance Show1 Point where
   liftShowsPrec sp _ d (Point a b) = showsBinaryWith sp sp "Point" d a b
 
 instance Applicative Point where
-
   pure a = Point a a
 
   (Point fa fb) <*> Point a b = Point (fa a) (fb b)
@@ -77,19 +76,16 @@ instance (Semigroup a) => Semigroup (Point a) where
   (Point a0 b0) <> (Point a1 b1) = Point (a0 <> a1) (b0 <> b1)
 
 instance (Semigroup a, Monoid a) => Monoid (Point a) where
-
   mempty = Point mempty mempty
 
   mappend = (<>)
 
 instance (Bounded a) => Bounded (Point a) where
-
   minBound = Point minBound minBound
 
   maxBound = Point maxBound maxBound
 
 instance (Num a) => Num (Point a) where
-
   (Point a0 b0) + (Point a1 b1) = Point (a0 + a1) (b0 + b1)
 
   negate = fmap negate
@@ -103,8 +99,7 @@ instance (Num a) => Num (Point a) where
   fromInteger x = Point (fromInteger x) (fromInteger x)
 
 instance (Fractional a) => Fractional (Point a) where
-
-  fromRational x = Point (fromRational x) (fromRational x) 
+  fromRational x = Point (fromRational x) (fromRational x)
 
   recip = fmap recip
 
@@ -115,7 +110,6 @@ instance Distributive Point where
       getR (Point _ r) = r
 
 instance Representable Point where
-
   type Rep Point = Bool
 
   tabulate f = Point (f False) (f True)
@@ -124,7 +118,6 @@ instance Representable Point where
   index (Point _ r) True = r
 
 instance (Ord a) => Lattice (Point a) where
-
   (\/) (Point x y) (Point x' y') = Point (max x x') (max y y')
 
   (/\) (Point x y) (Point x' y') = Point (min x x') (min y y')

@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wall #-}
 
@@ -10,16 +11,16 @@ module NumHask.Space.Range
 where
 
 import Algebra.Lattice
-import Data.Bool (bool)
+import Control.Category (id)
 import Data.Distributive as D
 import Data.Functor.Apply (Apply (..))
 import Data.Functor.Classes
 import Data.Functor.Rep
 import Data.Semigroup.Foldable (Foldable1 (..))
 import Data.Semigroup.Traversable (Traversable1 (..))
-import GHC.Generics (Generic)
+import GHC.Show (show)
 import NumHask.Space.Types as S
-import Prelude
+import Protolude as P
 
 -- $setup
 
@@ -57,7 +58,7 @@ data Range a = Range a a
   deriving (Eq, Generic)
 
 instance (Show a) => Show (Range a) where
-  show (Range a b) = "Range " <> show a <> " " <> show b
+  show (Range a b) = "Range " <> P.show a <> " " <> P.show b
 
 instance Eq1 Range where
   liftEq f (Range a b) (Range c d) = f a c && f b d
@@ -72,7 +73,6 @@ instance Apply Range where
   Range fa fb <.> Range a b = Range (fa a) (fb b)
 
 instance Applicative Range where
-
   pure a = Range a a
 
   (Range fa fb) <*> Range a b = Range (fa a) (fb b)
@@ -95,7 +95,6 @@ instance D.Distributive Range where
       getR (Range _ r) = r
 
 instance Representable Range where
-
   type Rep Range = Bool
 
   tabulate f = Range (f False) (f True)
@@ -104,13 +103,11 @@ instance Representable Range where
   index (Range _ r) True = r
 
 instance (Ord a) => Lattice (Range a) where
-
   (\/) = liftR2 min
 
   (/\) = liftR2 max
 
 instance (Eq a, Ord a) => Space (Range a) where
-
   type Element (Range a) = a
 
   lower (Range l _) = l
@@ -120,7 +117,6 @@ instance (Eq a, Ord a) => Space (Range a) where
   (>.<) = Range
 
 instance (Ord a, Fractional a) => FieldSpace (Range a) where
-
   type Grid (Range a) = Int
 
   grid o s n = (+ bool 0 (step / 2) (o == MidPos)) <$> posns
@@ -144,7 +140,6 @@ instance (Eq a, Ord a) => Semigroup (Range a) where
 
 -- | Numeric algebra based on Interval arithmetic
 instance (Num a, Eq a, Ord a) => Num (Range a) where
-
   (Range l u) + (Range l' u') = space1 [l + l', u + u']
 
   negate (Range l u) = negate u ... negate l

@@ -28,7 +28,7 @@ module NumHask.Space.Types
 where
 
 import Protolude
-import Data.Foldable
+import Protolude.Partial (foldr1)
 
 -- | Space is a continuous range of numbers that contains elements and has an upper and lower value.
 --
@@ -39,9 +39,7 @@ import Data.Foldable
 -- > norm (norm a) = norm a
 -- > a |>| b == b |<| a
 -- > a |.| singleton a
-
 class Space s where
-
   -- | the underlying element in the space
   type Element s :: Type
 
@@ -57,7 +55,6 @@ class Space s where
 
   -- | the intersection of two spaces
   intersection :: s -> s -> s
-
   default intersection :: (Ord (Element s)) => s -> s -> s
   intersection a b = l >.< u
     where
@@ -66,7 +63,6 @@ class Space s where
 
   -- | the union of two spaces
   union :: s -> s -> s
-
   default union :: (Ord (Element s)) => s -> s -> s
   union a b = l >.< u
     where
@@ -84,7 +80,6 @@ class Space s where
   infix 3 ...
 
   (...) :: Element s -> Element s -> s
-
   default (...) :: (Ord (Element s)) => Element s -> Element s -> s
   (...) a b = (a `min` b) >.< (a `max` b)
 
@@ -97,7 +92,6 @@ class Space s where
   infixl 7 |.|
 
   (|.|) :: Element s -> s -> Bool
-
   default (|.|) :: (Ord (Element s)) => Element s -> s -> Bool
   (|.|) a s = (a >= lower s) && (upper s >= a)
 
@@ -105,7 +99,6 @@ class Space s where
   infixl 7 |>|
 
   (|>|) :: s -> s -> Bool
-
   default (|>|) :: (Ord (Element s)) => s -> s -> Bool
   (|>|) s0 s1 =
     lower s0 >= upper s1
@@ -114,7 +107,6 @@ class Space s where
   infixl 7 |<|
 
   (|<|) :: s -> s -> Bool
-
   default (|<|) :: (Ord (Element s)) => s -> s -> Bool
   (|<|) s0 s1 =
     lower s1 <= upper s0
@@ -163,7 +155,6 @@ instance (Space a) => Semigroup (Intersection a) where
 -- > space1 (grid OuterPos s g) == s
 -- > getUnion (sconcat (Union <$> (gridSpace s g))) == s
 class (Space s, Num (Element s)) => FieldSpace s where
-
   type Grid s :: Type
 
   -- | create equally-spaced elements across a space
@@ -173,17 +164,18 @@ class (Space s, Num (Element s)) => FieldSpace s where
   gridSpace :: s -> Grid s -> [s]
 
 -- | Pos suggests where points should be placed in forming a grid across a field space.
-data Pos =
-  -- | include boundaries
-  OuterPos |
-  -- | don't include boundaries
-  InnerPos |
-  -- | include the lower boundary
-  LowerPos |
-  -- | include the upper boundary
-  UpperPos |
-  -- | use the mid-point of the space
-  MidPos deriving (Show, Eq)
+data Pos
+  = -- | include boundaries
+    OuterPos
+  | -- | don't include boundaries
+    InnerPos
+  | -- | include the lower boundary
+    LowerPos
+  | -- | include the upper boundary
+    UpperPos
+  | -- | use the mid-point of the space
+    MidPos
+  deriving (Show, Eq)
 
 -- | middle element of the space
 mid :: (Space s, Fractional (Element s)) => s -> Element s

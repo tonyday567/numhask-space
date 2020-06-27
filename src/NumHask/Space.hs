@@ -5,7 +5,6 @@
 -- Mathematics does not define a space, leaving library devs to experiment.
 --
 -- https://en.wikipedia.org/wiki/Space_(mathematics)
---
 module NumHask.Space
   ( -- * Space
     -- $space
@@ -21,11 +20,11 @@ module NumHask.Space
   )
 where
 
+import NumHask.Space.Histogram hiding ()
 import NumHask.Space.Point hiding ()
 import NumHask.Space.Range hiding ()
 import NumHask.Space.Rect hiding ()
 import NumHask.Space.Time hiding ()
-import NumHask.Space.Histogram hiding ()
 import NumHask.Space.Types hiding ()
 
 -- $space
