@@ -1,6 +1,6 @@
 cabal-version: 2.4
 name: numhask-space
-version: 0.5.0
+version: 0.6.0
 synopsis:
   numerical spaces
 description:
@@ -48,13 +48,12 @@ library
     base >=4.7 && <5,
     containers >= 0.6 && < 0.7,
     distributive >=0.2.2 && <1,
-    foldl >= 1.4.5 && <2,
     lattices >= 2.0.1 && <2.1,
-    protolude >= 0.3.0 && < 0.4.0,
+    numhask >= 0.6 && < 0.7,
     semigroupoids >=5 && <6,
     tdigest >= 0.2.1 && < 0.3,
     text >= 1.2.3.1 && <2,
-    time >= 1.8.0.2 && <2
+    time >= 1.8.0.2 && <2,
   exposed-modules:
     NumHask.Space
     NumHask.Space.Types
@@ -74,7 +73,7 @@ test-suite test
   build-depends:
     base >=4.7 && <5,
     doctest >= 0.16 && < 0.18,
-    protolude >= 0.3
+    numhask >= 0.6 && < 0.7,
   default-language: Haskell2010
   ghc-options:
     -Wall

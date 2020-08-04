@@ -1,7 +1,9 @@
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE RebindableSyntax #-}
 {-# OPTIONS_GHC -Wall #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
+{-# OPTIONS_GHC -fno-warn-type-defaults #-}
 
 -- | data algorithms related to time (as a Space)
 module NumHask.Space.Time
@@ -16,14 +18,12 @@ module NumHask.Space.Time
   )
 where
 
-import Control.Category (id)
-import qualified Control.Foldl as L
 import Data.List (nub)
 import Data.String (String)
-import Data.Text (pack, unpack)
 import Data.Time
 import NumHask.Space.Types
-import Protolude
+import NumHask.Prelude
+import Data.Fixed (Fixed(MkFixed))
 
 -- | parse text as per iso8601
 --
@@ -54,9 +54,7 @@ grainSecs (Minutes n) = fromIntegral n * 60
 grainSecs (Seconds n) = n
 
 toDouble :: NominalDiffTime -> Double
-toDouble t =
-  (/ 1000000000000.0) $
-    fromIntegral (floor $ t * 1000000000000 :: Integer)
+toDouble t = let (MkFixed i) = (nominalDiffTimeToSeconds t) in (fromInteger i) * 1e-12
 
 toDouble' :: DiffTime -> Double
 toDouble' =
@@ -141,15 +139,15 @@ addHalfGrain g@(Seconds _) d = addUTCTime (fromDouble (0.5 * grainSecs g)) d
 -- >>> floorGrain (Seconds 0.1) (UTCTime (fromGregorian 2016 12 30) 0.12)
 -- 2016-12-30 00:00:00.1 UTC
 floorGrain :: TimeGrain -> UTCTime -> UTCTime
-floorGrain (Years n) (UTCTime d _) = UTCTime (addDays (-1) $ fromGregorian y' 1 1) 0
+floorGrain (Years n) (UTCTime d _) = UTCTime (addDays (-1) $ fromGregorian y' 1 1) (secondsToDiffTime 0)
   where
     (y, _, _) = toGregorian (addDays 1 d)
     y' = fromIntegral $ 1 + n * floor (fromIntegral (y - 1) / fromIntegral n :: Double)
-floorGrain (Months n) (UTCTime d _) = UTCTime (addDays (-1) $ fromGregorian y m' 1) 0
+floorGrain (Months n) (UTCTime d _) = UTCTime (addDays (-1) $ fromGregorian y m' 1) (secondsToDiffTime 0)
   where
     (y, m, _) = toGregorian (addDays 1 d)
     m' = fromIntegral (1 + fromIntegral n * floor (fromIntegral (m - 1) / fromIntegral n :: Double) :: Integer)
-floorGrain (Days _) (UTCTime d _) = UTCTime d 0
+floorGrain (Days _) (UTCTime d _) = UTCTime d (secondsToDiffTime 0)
 floorGrain (Hours h) u@(UTCTime _ t) = addUTCTime x u
   where
     s = toDouble' t
@@ -180,16 +178,16 @@ floorGrain (Seconds secs) u@(UTCTime _ t) = addUTCTime x u
 -- >>> ceilingGrain (Seconds 0.1) (UTCTime (fromGregorian 2016 12 30) 0.12)
 -- 2016-12-30 00:00:00.2 UTC
 ceilingGrain :: TimeGrain -> UTCTime -> UTCTime
-ceilingGrain (Years n) (UTCTime d _) = UTCTime (addDays (-1) $ fromGregorian y' 1 1) 0
+ceilingGrain (Years n) (UTCTime d _) = UTCTime (addDays (-1) $ fromGregorian y' 1 1) (secondsToDiffTime 0)
   where
     (y, _, _) = toGregorian (addDays 1 d)
     y' = fromIntegral $ 1 + n * ceiling (fromIntegral (y - 1) / fromIntegral n :: Double)
-ceilingGrain (Months n) (UTCTime d _) = UTCTime (addDays (-1) $ fromGregorian y' m'' 1) 0
+ceilingGrain (Months n) (UTCTime d _) = UTCTime (addDays (-1) $ fromGregorian y' m'' 1) (secondsToDiffTime 0)
   where
     (y, m, _) = toGregorian (addDays 1 d)
     m' = (m + n - 1) `div` n * n
     (y', m'') = fromIntegral <$> if m' == 12 then (y + 1, 1) else (y, m' + 1)
-ceilingGrain (Days _) (UTCTime d t) = if t == 0 then UTCTime d 0 else UTCTime (addDays 1 d) 0
+ceilingGrain (Days _) (UTCTime d t) = if t == (secondsToDiffTime 0) then UTCTime d (secondsToDiffTime 0) else UTCTime (addDays 1 d) (secondsToDiffTime 0)
 ceilingGrain (Hours h) u@(UTCTime _ t) = addUTCTime x u
   where
     s = toDouble' t
@@ -221,7 +219,15 @@ placedTimeLabelDiscontinuous posd format n ts = (zip (fst <$> inds') labels, rem
     tps' = case posd of
       PosInnerOnly -> tps
       PosIncludeBoundaries -> [l] <> tps <> [u]
-    (rem', inds) = L.fold (matchTimes tps') ts
+    begin = (tps', [], 0)
+    done (p, x, _) = (p, reverse x)
+    step ([], xs, n) _ = ([], xs, n)
+    step (p : ps, xs, n) a
+      | p == a = step (ps, (n, p) : xs, n) a
+      | p > a = (p : ps, xs, n + 1)
+      | otherwise = step (ps, (n - 1, p) : xs, n) a
+    (rem', inds) = done $ foldl' step begin ts
+
     inds' = laterTimes inds
     fmt = case format of
       Just f -> unpack f
@@ -240,27 +246,17 @@ autoFormat (Hours x)
 autoFormat (Minutes _) = "%R"
 autoFormat (Seconds _) = "%R%Q"
 
-matchTimes :: [UTCTime] -> L.Fold UTCTime ([UTCTime], [(Int, UTCTime)])
-matchTimes ticks = L.Fold step begin (\(p, x, _) -> (p, reverse x))
-  where
-    begin = (ticks, [], 0)
-    step ([], xs, n) _ = ([], xs, n)
-    step (p : ps, xs, n) a
-      | p == a = step (ps, (n, p) : xs, n) a
-      | p > a = (p : ps, xs, n + 1)
-      | otherwise = step (ps, (n - 1, p) : xs, n) a
-
 laterTimes :: [(Int, a)] -> [(Int, a)]
 laterTimes [] = []
 laterTimes [x] = [x]
-laterTimes (x : xs) = L.fold (L.Fold step (x, []) (\(x0, x1) -> reverse $ x0 : x1)) xs
+laterTimes (x : xs) = (\(x0, x1) -> reverse $ x0 : x1) $ foldl' step (x,[]) xs
   where
     step ((n, a), rs) (na, aa) = if na == n then ((na, aa), rs) else ((na, aa), (n, a) : rs)
 
 -- | A sensible time grid between two dates, projected onto (0,1) with no attempt to get finnicky.
 --
 -- >>> placedTimeLabelContinuous PosIncludeBoundaries (Just "%d %b") 2 (UTCTime (fromGregorian 2017 12 6) 0, UTCTime (fromGregorian 2017 12 29) 0)
--- [(0.0,"06 Dec"),(0.43478260869565216,"16 Dec"),(0.8695652173913043,"26 Dec"),(1.0,"29 Dec")]
+-- [(0.0,"06 Dec"),(0.4347826086956521,"16 Dec"),(0.8695652173913042,"26 Dec"),(0.9999999999999999,"29 Dec")]
 placedTimeLabelContinuous :: PosDiscontinuous -> Maybe Text -> Int -> (UTCTime, UTCTime) -> [(Double, Text)]
 placedTimeLabelContinuous posd format n (l, u) = zip tpsd labels
   where
@@ -310,11 +306,10 @@ sensibleTimeGrid p n (l, u) = (grain, ts)
 
 -- come up with a sensible step for a grid over a Field
 stepSensible ::
-  (Fractional a, RealFrac a, Floating a) =>
   Pos ->
-  a ->
+  Double ->
   Int ->
-  a
+  Double
 stepSensible tp span' n =
   step
     + if tp == MidPos
@@ -332,11 +327,10 @@ stepSensible tp span' n =
 -- come up with a sensible step for a grid over a Field, where sensible means the 18th century
 -- practice of using multiples of 3 to round
 stepSensible3 ::
-  (Fractional a, Floating a, RealFrac a) =>
   Pos ->
-  a ->
+  Double ->
   Int ->
-  a
+  Double
 stepSensible3 tp span' n =
   step
     + if tp == MidPos

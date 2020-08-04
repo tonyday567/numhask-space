@@ -1,5 +1,7 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wall #-}
 
@@ -11,14 +13,14 @@ module NumHask.Space.Point
   )
 where
 
-import Algebra.Lattice
-import Data.Distributive as D
+import Data.Distributive
 import Data.Functor.Classes
 import Data.Functor.Rep
 import GHC.Show (show)
 import NumHask.Space.Range
 import NumHask.Space.Types
-import Protolude as P hiding (rotate)
+import NumHask.Prelude hiding (show, Distributive, rotate)
+import qualified NumHask.Prelude as P
 
 -- $setup
 -- >>> :set -XNoImplicitPrelude
@@ -44,7 +46,7 @@ data Point a
   deriving (Eq, Generic)
 
 instance (Show a) => Show (Point a) where
-  show (Point a b) = "Point " <> P.show a <> " " <> P.show b
+  show (Point a b) = "Point " <> show a <> " " <> show b
 
 instance Functor Point where
   fmap f (Point a b) = Point (f a) (f b)
@@ -85,22 +87,26 @@ instance (Bounded a) => Bounded (Point a) where
 
   maxBound = Point maxBound maxBound
 
-instance (Num a) => Num (Point a) where
+instance (Additive a) => Additive (Point a) where
   (Point a0 b0) + (Point a1 b1) = Point (a0 + a1) (b0 + b1)
+  zero = Point zero zero
 
+instance (Subtractive a) => Subtractive (Point a) where
   negate = fmap negate
 
+instance (Multiplicative a) => Multiplicative (Point a) where
   (Point a0 b0) * (Point a1 b1) = Point (a0 * a1) (b0 * b1)
+  one = Point one one
 
-  signum = fmap signum
+instance (P.Distributive a) => P.Distributive (Point a)
 
+instance (Field a) => Field (Point a)
+
+instance (Signed a) => Signed (Point a) where
+  sign = fmap sign
   abs = fmap abs
 
-  fromInteger x = Point (fromInteger x) (fromInteger x)
-
-instance (Fractional a) => Fractional (Point a) where
-  fromRational x = Point (fromRational x) (fromRational x)
-
+instance (Divisive a) => Divisive (Point a) where
   recip = fmap recip
 
 instance Distributive Point where
@@ -117,16 +123,17 @@ instance Representable Point where
   index (Point l _) False = l
   index (Point _ r) True = r
 
-instance (Ord a) => Lattice (Point a) where
+instance (Ord a) => JoinSemiLattice (Point a) where
   (\/) (Point x y) (Point x' y') = Point (max x x') (max y y')
 
+instance (Ord a) => MeetSemiLattice (Point a) where
   (/\) (Point x y) (Point x' y') = Point (min x x') (min y y')
 
 -- | rotate a point by x degrees relative to the origin
 --
 -- >>> rotate 90 (Point 0 1)
 -- Point 1.0 6.123233995736766e-17
-rotate :: (Floating a) => a -> Point a -> Point a
+rotate :: (FromInteger a, TrigField a) => a -> Point a -> Point a
 rotate d (Point x y) = Point (x * cos d' + y * sin d') (y * cos d' - x * sin d')
   where
     d' = d * pi / 180
@@ -135,5 +142,5 @@ rotate d (Point x y) = Point (x * cos d' + y * sin d') (y * cos d' - x * sin d')
 --
 -- >>> gridP (**2) (Range 0 4) 4
 -- [Point 0.0 0.0,Point 1.0 1.0,Point 2.0 4.0,Point 3.0 9.0,Point 4.0 16.0]
-gridP :: (Ord a, Fractional a) => (a -> a) -> Range a -> Int -> [Point a]
+gridP :: (FieldSpace (Range a)) => (a -> a) -> Range a -> Grid (Range a) -> [Point a]
 gridP f r g = (\x -> Point x (f x)) <$> grid OuterPos r g

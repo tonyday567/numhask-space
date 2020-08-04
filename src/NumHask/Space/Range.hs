@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wall #-}
@@ -10,8 +11,6 @@ module NumHask.Space.Range
   )
 where
 
-import Algebra.Lattice
-import Control.Category (id)
 import Data.Distributive as D
 import Data.Functor.Apply (Apply (..))
 import Data.Functor.Classes
@@ -20,9 +19,13 @@ import Data.Semigroup.Foldable (Foldable1 (..))
 import Data.Semigroup.Traversable (Traversable1 (..))
 import GHC.Show (show)
 import NumHask.Space.Types as S
-import Protolude as P
+import NumHask.Prelude hiding (show)
 
 -- $setup
+--
+-- >>> :set -XFlexibleContexts
+-- >>> :set -XGADTs
+--
 
 -- | A continuous range over type a
 --
@@ -35,7 +38,7 @@ import Protolude as P
 -- >>> a + a
 -- Range -2 2
 -- >>> a * a
--- Range -1 1
+-- Range -1.0 1.0
 -- >>> (+1) <$> (Range 1 2)
 -- Range 2 3
 --
@@ -47,18 +50,18 @@ import Protolude as P
 --
 -- Create an equally spaced grid including outer bounds over a Range
 --
--- >>> grid OuterPos (Range 0 10) 5
+-- >>> grid OuterPos (Range 0.0 10.0) 5
 -- [0.0,2.0,4.0,6.0,8.0,10.0]
 --
 -- divide up a Range into equal-sized sections
 --
--- >>> gridSpace (Range 0 1) 4
+-- >>> gridSpace (Range 0.0 1.0) 4
 -- [Range 0.0 0.25,Range 0.25 0.5,Range 0.5 0.75,Range 0.75 1.0]
 data Range a = Range a a
   deriving (Eq, Generic)
 
 instance (Show a) => Show (Range a) where
-  show (Range a b) = "Range " <> P.show a <> " " <> P.show b
+  show (Range a b) = "Range " <> show a <> " " <> show b
 
 instance Eq1 Range where
   liftEq f (Range a b) (Range c d) = f a c && f b d
@@ -102,9 +105,10 @@ instance Representable Range where
   index (Range l _) False = l
   index (Range _ r) True = r
 
-instance (Ord a) => Lattice (Range a) where
+instance (Ord a) => JoinSemiLattice (Range a) where
   (\/) = liftR2 min
 
+instance (Ord a) => MeetSemiLattice (Range a) where
   (/\) = liftR2 max
 
 instance (Eq a, Ord a) => Space (Range a) where
@@ -116,8 +120,8 @@ instance (Eq a, Ord a) => Space (Range a) where
 
   (>.<) = Range
 
-instance (Ord a, Fractional a) => FieldSpace (Range a) where
-  type Grid (Range a) = Int
+instance FieldSpace (Range Double) where
+  type Grid (Range Double) = Int
 
   grid o s n = (+ bool 0 (step / 2) (o == MidPos)) <$> posns
     where
@@ -138,26 +142,27 @@ instance (Ord a, Fractional a) => FieldSpace (Range a) where
 instance (Eq a, Ord a) => Semigroup (Range a) where
   (<>) a b = getUnion (Union a <> Union b)
 
--- | Numeric algebra based on Interval arithmetic
-instance (Num a, Eq a, Ord a) => Num (Range a) where
+instance (Additive a, Eq a, Ord a) => Additive (Range a) where
   (Range l u) + (Range l' u') = space1 [l + l', u + u']
+  zero = Range zero zero
 
+instance (Subtractive a, Eq a, Ord a) => Subtractive (Range a) where
   negate (Range l u) = negate u ... negate l
 
+instance (Field a, Eq a, Ord a) => Multiplicative (Range a) where
   (Range l u) * (Range l' u') =
     space1 [l * l', l * u', u * l', u * u']
+  one = Range (negate one/(one + one)) (one/(one+one))
 
-  signum (Range l u) = bool (negate 1) 1 (u >= l)
-
+instance (Field a, Subtractive a, Eq a, Ord a) => Signed (Range a) where
+  sign (Range l u) = bool (negate one) one (u >= l)
   abs (Range l u) = bool (u ... l) (l ... u) (u >= l)
 
-  fromInteger x = fromInteger x ... fromInteger x
-
-stepSensible :: (Fractional a, RealFrac a, Floating a, Integral b) => Pos -> a -> b -> a
+stepSensible :: Pos -> Double -> Integer -> Double
 stepSensible tp span' n =
   step + bool 0 (step / 2) (tp == MidPos)
   where
-    step' = 10.0 ^^ (floor (logBase 10 (span' / fromIntegral n)) :: Integer)
+    step' = 10.0 ^^ (floor (logBase 10 (span' / fromInteger n)) :: Integer)
     err = fromIntegral n / span' * step'
     step
       | err <= 0.15 = 10.0 * step'
@@ -170,12 +175,11 @@ stepSensible tp span' n =
 -- >>> gridSensible OuterPos False (Range (-12.0) 23.0) 6
 -- [-15.0,-10.0,-5.0,0.0,5.0,10.0,15.0,20.0,25.0]
 gridSensible ::
-  (Ord a, RealFrac a, Floating a, Integral b) =>
   Pos ->
   Bool ->
-  Range a ->
-  b ->
-  [a]
+  Range Double ->
+  Integer ->
+  [Double]
 gridSensible tp inside r@(Range l u) n =
   bool id (filter (`memberOf` r)) inside $
     (+ bool 0 (step / 2) (tp == MidPos)) <$> posns

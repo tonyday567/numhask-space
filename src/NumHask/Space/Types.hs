@@ -1,3 +1,4 @@
+{-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -27,8 +28,8 @@ module NumHask.Space.Types
   )
 where
 
-import Protolude
-import Protolude.Partial (foldr1)
+import NumHask.Prelude
+import qualified Prelude as P
 
 -- | Space is a continuous range of numbers that contains elements and has an upper and lower value.
 --
@@ -129,13 +130,13 @@ memberOf :: (Space s) => Element s -> s -> Bool
 memberOf = (|.|)
 
 -- | distance between boundaries
-width :: (Space s, Num (Element s)) => s -> Element s
+width :: (Space s, Subtractive (Element s)) => s -> Element s
 width s = upper s - lower s
 
 -- | create a space centered on a plus or minus b
 infixl 6 +/-
 
-(+/-) :: (Space s, Num (Element s)) => Element s -> Element s -> s
+(+/-) :: (Space s, Subtractive (Element s)) => Element s -> Element s -> s
 a +/- b = a - b ... a + b
 
 -- | a convex hull
@@ -154,7 +155,7 @@ instance (Space a) => Semigroup (Intersection a) where
 --
 -- > space1 (grid OuterPos s g) == s
 -- > getUnion (sconcat (Union <$> (gridSpace s g))) == s
-class (Space s, Num (Element s)) => FieldSpace s where
+class (Space s, Field (Element s)) => FieldSpace s where
   type Grid s :: Type
 
   -- | create equally-spaced elements across a space
@@ -178,8 +179,8 @@ data Pos
   deriving (Show, Eq)
 
 -- | middle element of the space
-mid :: (Space s, Fractional (Element s)) => s -> Element s
-mid s = (lower s + upper s) / 2.0
+mid :: (Space s, Field (Element s)) => s -> Element s
+mid s = (lower s + upper s) / (one + one)
 
 -- | project a data point from one space to another, preserving relative position
 --
@@ -187,7 +188,7 @@ mid s = (lower s + upper s) / 2.0
 -- > project o n (upper o) = upper n
 -- > project o n (mid o) = mid n
 -- > project a a x = x
-project :: (Space s, Fractional (Element s)) => s -> s -> Element s -> Element s
+project :: (Space s, Field (Element s)) => s -> s -> Element s -> Element s
 project s0 s1 p =
   ((p - lower s0) / (upper s0 - lower s0)) * (upper s1 - lower s1) + lower s1
 
@@ -195,7 +196,7 @@ project s0 s1 p =
 --
 -- > all $ space1 a `contains` <$> a
 space1 :: (Space s, Traversable f) => f (Element s) -> s
-space1 = foldr1 union . fmap singleton
+space1 = P.foldr1 union . fmap singleton
 
 -- | lift a monotone function (increasing or decreasing) over a given space
 monotone :: (Space a, Space b) => (Element a -> Element b) -> a -> b
@@ -204,7 +205,8 @@ monotone f s = space1 [f (lower s), f (upper s)]
 -- | a small space
 eps ::
   ( Space s,
-    Fractional (Element s)
+    FromRational (Element s),
+    Field (Element s)
   ) =>
   Element s ->
   Element s ->
@@ -214,7 +216,7 @@ eps accuracy a = a +/- (accuracy * a * 1e-6)
 -- | widen a space
 widen ::
   ( Space s,
-    Num (Element s)
+    Ring (Element s)
   ) =>
   Element s ->
   s ->
@@ -224,7 +226,8 @@ widen a s = (lower s - a) >.< (upper s + a)
 -- | widen by a small amount
 widenEps ::
   ( Space s,
-    Fractional (Element s)
+    FromRational (Element s),
+    Field (Element s)
   ) =>
   Element s ->
   s ->
@@ -232,9 +235,9 @@ widenEps ::
 widenEps accuracy = widen (accuracy * 1e-6)
 
 -- | Scale a Space. (scalar multiplication)
-scale :: (Num (Element s), Space s) => Element s -> s -> s
+scale :: (Multiplicative (Element s), Space s) => Element s -> s -> s
 scale e s = (e * lower s) ... (e * upper s)
 
 -- | Move a Space. (scalar addition)
-move :: (Num (Element s), Space s) => Element s -> s -> s
+move :: (Additive (Element s), Space s) => Element s -> s -> s
 move e s = (e + lower s) ... (e + upper s)

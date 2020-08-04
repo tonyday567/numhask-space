@@ -17,14 +17,13 @@ module NumHask.Space.Histogram
   )
 where
 
-import qualified Control.Foldl as L
 import qualified Data.List as List
 import qualified Data.Map as Map
 import Data.TDigest
 import NumHask.Space.Range
 import NumHask.Space.Rect
 import NumHask.Space.Types
-import Protolude
+import NumHask.Prelude
 
 -- | This Histogram is a list of contiguous boundaries (a boundary being the lower edge of one bucket and the upper edge of another), and a value (usually a count) for each bucket, represented here as a map
 --
@@ -95,13 +94,13 @@ makeRects o (Histogram cs counts) = List.zipWith4 Rect x z y w'
 -- >>> regularQuantiles 4 [0..100]
 -- [0.0,24.75,50.0,75.25,100.0]
 regularQuantiles :: Double -> [Double] -> [Double]
-regularQuantiles n = L.fold (quantileFold qs)
+regularQuantiles n xs = quantileFold qs xs
   where
     qs = ((1 / n) *) <$> [0 .. n]
 
 -- | one-pass approximate quantiles fold
-quantileFold :: [Double] -> L.Fold Double [Double]
-quantileFold qs = L.Fold step begin done
+quantileFold :: [Double] -> [Double] -> [Double]
+quantileFold qs xs = done $ foldl' step begin xs
   where
     step x a = Data.TDigest.insert a x
     begin = tdigest ([] :: [Double]) :: TDigest 25
@@ -116,7 +115,7 @@ fromQuantiles qs xs = Histogram xs (Map.fromList $ zip [1 ..] (diffq qs))
   where
     diffq [] = []
     diffq [_] = []
-    diffq (x : xs') = L.fold (L.Fold step (x, []) (reverse . snd)) xs'
+    diffq (x : xs') = (reverse . snd) $ foldl' step (x, []) xs'
     step (a0, xs') a = (a, (a - a0) : xs')
 
 -- | normalize a histogram so that sum values = one

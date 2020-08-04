@@ -2,7 +2,7 @@
 
 module Main where
 
-import Protolude
+import NumHask.Prelude
 import Test.DocTest
 
 main :: IO ()
