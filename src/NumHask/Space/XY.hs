@@ -15,7 +15,6 @@ module NumHask.Space.XY
     toPoint,
     projectOn,
     projectTo,
-    fixRect,
   ) where
 
 import NumHask.Prelude
@@ -103,13 +102,3 @@ projectOn new old@(Rect x z y w) ao@(RectXY (Rect ox oz oy ow))
 projectTo :: Rect Double -> [XY Double] -> [XY Double]
 projectTo _ [] = []
 projectTo vb (x : xs) = projectOn vb (toRect $ sconcat (x :| xs)) <$> (x : xs)
-
--- | guard substituting singleton dimensions
-fixRect :: Maybe (Rect Double) -> Rect Double
-fixRect r = maybe one singletonUnit r
-  where
-    singletonUnit (Rect x z y w)
-      | x == z && y == w = Rect (x - 0.5) (x + 0.5) (y - 0.5) (y + 0.5)
-      | x == z = Rect (x - 0.5) (x + 0.5) y w
-      | y == w = Rect x z (y - 0.5) (y + 0.5)
-      | otherwise = Rect x z y w

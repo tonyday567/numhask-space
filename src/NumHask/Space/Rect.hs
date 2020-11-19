@@ -1,12 +1,13 @@
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NegativeLiterals #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wall #-}
 {-# OPTIONS_GHC -Wincomplete-patterns #-}
 
@@ -19,6 +20,7 @@ module NumHask.Space.Rect
     corners4,
     projectRect,
     foldRect,
+    foldRectUnsafe,
     addPoint,
     rotateRect,
     gridR,
@@ -31,19 +33,17 @@ where
 import Data.Distributive as D
 import Data.Functor.Compose
 import Data.Functor.Rep
-import Data.List.NonEmpty
-import GHC.Exts
 import GHC.Show (show)
+import NumHask.Prelude hiding (Distributive, rotate, show)
 import NumHask.Space.Point
 import NumHask.Space.Range
 import NumHask.Space.Types
-import NumHask.Prelude hiding (rotate, Distributive, show)
+import Data.Foldable (Foldable(foldr1))
 
 -- $setup
 --
 -- >>> :set -XFlexibleContexts
 -- >>> :set -XGADTs
---
 
 -- | a rectangular space often representing a 2-dimensional or XY plane.
 --
@@ -142,10 +142,10 @@ instance (Ord a) => Space (Rect a) where
 
   (|<|) s0 s1 = lower s1 `joinLeq` upper s0
 
-instance FieldSpace (Rect Double) where
-  type Grid (Rect Double) = Point Int
+instance (FromIntegral a Int, Field a, Ord a) => FieldSpace (Rect a) where
+  type Grid (Rect a) = Point Int
 
-  grid o s n = (+ bool zero (step / (one+one)) (o == MidPos)) <$> posns
+  grid o s n = (+ bool zero (step / (one + one)) (o == MidPos)) <$> posns
     where
       posns =
         (lower s +) . (step *) . fmap fromIntegral
@@ -194,10 +194,11 @@ corners4 (Rect x z y w) =
 -- >>> projectRect (Rect 0 1 (-1) 0) (Rect 0 4 0 8) (Rect 0.25 0.75 (-0.75) (-0.25))
 -- Rect 1.0 3.0 2.0 6.0
 projectRect ::
-  Rect Double ->
-  Rect Double ->
-  Rect Double ->
-  Rect Double
+  (Field a, Ord a) =>
+  Rect a ->
+  Rect a ->
+  Rect a ->
+  Rect a
 projectRect r0 r1 (Rect a b c d) = Rect a' b' c' d'
   where
     (Point a' c') = project r0 r1 (Point a c)
@@ -206,10 +207,8 @@ projectRect r0 r1 (Rect a b c d) = Rect a' b' c' d'
 -- | Numeric algebra based on interval arithmetioc for addition and unitRect and projection for multiplication
 -- >>> one + one :: Rect Double
 -- Rect -1.0 1.0 -1.0 1.0
---
 instance (Additive a) => Additive (Rect a) where
-  (+)
-    (Rect a b c d) (Rect a' b' c' d') =
+  (+) (Rect a b c d) (Rect a' b' c' d') =
     Rect (a + a') (b + b') (c + c') (d + d')
   zero = Rect zero zero zero zero
 
@@ -217,11 +216,10 @@ instance (Subtractive a) => Subtractive (Rect a) where
   negate = fmap negate
 
 instance (Ord a, Field a) => Multiplicative (Rect a) where
-  (*)
-    (Ranges x0 y0) (Ranges x1 y1) =
+  (*) (Ranges x0 y0) (Ranges x1 y1) =
     Ranges (x0 `rtimes` x1) (y0 `rtimes` y1)
     where
-      rtimes a b = bool (Range (m - r / (one+one)) (m + r / (one+one))) zero (a == zero || b == zero)
+      rtimes a b = bool (Range (m - r / (one + one)) (m + r / (one + one))) zero (a == zero || b == zero)
         where
           m = mid a + mid b
           r = width a * width b
@@ -240,6 +238,13 @@ foldRect :: (Ord a) => [Rect a] -> Maybe (Rect a)
 foldRect [] = Nothing
 foldRect (x : xs) = Just $ sconcat (x :| xs)
 
+-- | convex hull union of Rect's applied to a non-empty structure
+--
+-- >>> foldRectUnsafe [Rect 0 1 0 1, one]
+-- Rect -0.5 1.0 -0.5 1.0
+foldRectUnsafe :: (Foldable f, Ord a) => f (Rect a) -> Rect a
+foldRectUnsafe = foldr1 (<>)
+
 -- | add a Point to a Rect
 --
 -- >>> addPoint (Point 0 1) one
@@ -249,18 +254,18 @@ addPoint (Point x' y') (Rect x z y w) = Rect (x + x') (z + x') (y + y') (w + y')
 
 -- | rotate the corners of a Rect by x degrees relative to the origin, and fold to a new Rect
 --
--- >>> rotateRect 45 one
+-- >>> rotateRect (pi/4) one
 -- Rect -0.7071067811865475 0.7071067811865475 -5.551115123125783e-17 5.551115123125783e-17
-rotateRect :: Double -> Rect Double -> Rect Double
+rotateRect :: (TrigField a, Ord a) => a -> Rect a -> Rect a
 rotateRect d r =
   space1 $ rotate d <$> corners r
 
 -- | Create Rects for a formulae y = f(x) across an x range where the y range is Range 0 y
 --
--- >>> gridR (**2) (Range 0 4) 4
+-- >>> gridR (^2) (Range 0 4) 4
 -- [Rect 0.0 1.0 0.0 0.25,Rect 1.0 2.0 0.0 2.25,Rect 2.0 3.0 0.0 6.25,Rect 3.0 4.0 0.0 12.25]
-gridR :: (Double -> Double) -> Range Double -> Int -> [Rect Double]
-gridR f r g = (\x -> Rect (x - tick / 2) (x + tick / 2) 0 (f x)) <$> grid MidPos r g
+gridR :: (Field a, FromIntegral a Int, Ord a) => (a -> a) -> Range a -> Int -> [Rect a]
+gridR f r g = (\x -> Rect (x - tick / two) (x + tick / two) zero (f x)) <$> grid MidPos r g
   where
     tick = width r / fromIntegral g
 
@@ -276,11 +281,12 @@ gridF f r g = (\x -> (x, f (mid x))) <$> gridSpace r g
 -- >>> aspect 2
 -- Rect -1.0 1.0 -0.5 0.5
 aspect :: Double -> Rect Double
-aspect a = Rect (a * (-0.5)) (a * 0.5) (-0.5) 0.5
+aspect a = Rect (a * -0.5) (a * 0.5) -0.5 0.5
 
 -- | convert a Rect to a ratio
 --
--- >>> ratio (Rect (-1) 1 (-0.5) 0.5)
+-- >>> :set -XNegativeLiterals
+-- >>> ratio (Rect -1 1 -0.5 0.5)
 -- 2.0
 ratio :: (Field a) => Rect a -> a
 ratio (Rect x z y w) = (z - x) / (w - y)

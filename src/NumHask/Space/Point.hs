@@ -1,3 +1,5 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE NoImplicitPrelude #-}
@@ -10,6 +12,7 @@ module NumHask.Space.Point
   ( Point (..),
     rotate,
     gridP,
+    dotP,
   )
 where
 
@@ -115,6 +118,23 @@ instance Distributive Point where
       getL (Point l _) = l
       getR (Point _ r) = r
 
+instance (Additive a) => AdditiveAction (Point a) a where
+  (.+) a (Point x y) = Point (a+x) (a+y)
+  (+.) (Point x y) a = Point (a+x) (a+y)
+
+instance (Subtractive a) => SubtractiveAction (Point a) a where
+  (.-) a (Point x y) = Point (a-x) (a-y)
+  (-.) (Point x y) a = Point (x-a) (y-a)
+
+instance (Multiplicative a) => MultiplicativeAction (Point a) a where
+  (.*) a (Point x y) = Point (a*x) (a*y)
+  (*.) (Point x y) a = Point (a*x) (a*y)
+
+instance (Divisive a) => DivisiveAction (Point a) a where
+  (./) a (Point x y) = Point (a/x) (a/y)
+  (/.) (Point x y) a = Point (x/a) (y/a)
+
+
 instance Representable Point where
   type Rep Point = Bool
 
@@ -131,16 +151,39 @@ instance (Ord a) => MeetSemiLattice (Point a) where
 
 -- | rotate a point by x degrees relative to the origin
 --
--- >>> rotate 90 (Point 0 1)
+-- >>> rotate (pi/2) (Point 0 1)
 -- Point 1.0 6.123233995736766e-17
-rotate :: (FromInteger a, TrigField a) => a -> Point a -> Point a
-rotate d (Point x y) = Point (x * cos d' + y * sin d') (y * cos d' - x * sin d')
-  where
-    d' = d * pi / 180
+rotate :: (TrigField a) => a -> Point a -> Point a
+rotate d (Point x y) = Point (x * cos d + y * sin d) (x * (-sin d) + y * cos d)
 
 -- | Create Points for a formulae y = f(x) across an x range
 --
--- >>> gridP (**2) (Range 0 4) 4
+-- >>> gridP (^2) (Range 0 4) 4
 -- [Point 0.0 0.0,Point 1.0 1.0,Point 2.0 4.0,Point 3.0 9.0,Point 4.0 16.0]
 gridP :: (FieldSpace (Range a)) => (a -> a) -> Range a -> Grid (Range a) -> [Point a]
 gridP f r g = (\x -> Point x (f x)) <$> grid OuterPos r g
+
+-- | euclidean norm is the string convention when it comes to Complex
+instance
+  (ExpField a) =>
+  Norm (Point a) a
+  where
+    norm (Point x y) = sqrt (x*x + y*y)
+
+instance
+  (ExpField a) =>
+  Basis (Point a)
+  where
+    basis p@(Point x y) = Point (x / norm p) (y / norm p)
+
+-- | angle between two points p1 & p2 is angle p2 - angle p1
+--
+-- > \u@(Point ux uy) v@(Point vx vy) -> angle v - angle u == sign (ux*vy-uy*vx) * acos (dotP u v / (norm u * norm v))
+--
+instance (TrigField a) => Direction (Point a) a where
+  angle (Point x y) = atan2 y x
+  ray x = Point (cos x) (sin x)
+
+-- | dot product
+dotP :: Point Double -> Point Double -> Double
+dotP (Point x y) (Point x' y') = x*x'+y*y'

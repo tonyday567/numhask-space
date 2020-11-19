@@ -1,7 +1,9 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wall #-}
 
 -- | A Space containing numerical elements
@@ -120,10 +122,10 @@ instance (Eq a, Ord a) => Space (Range a) where
 
   (>.<) = Range
 
-instance FieldSpace (Range Double) where
-  type Grid (Range Double) = Int
+instance (Field a, Ord a, FromIntegral a Int) => FieldSpace (Range a) where
+  type Grid (Range a) = Int
 
-  grid o s n = (+ bool 0 (step / 2) (o == MidPos)) <$> posns
+  grid o s n = (+ bool zero (step / two) (o == MidPos)) <$> posns
     where
       posns = (lower s +) . (step *) . fromIntegral <$> [i0 .. i1]
       step = (/) (width s) (fromIntegral n)

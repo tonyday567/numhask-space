@@ -74,8 +74,8 @@ class Space s where
   --
   -- > lower a \/ upper a == lower a
   -- > lower a /\ upper a == upper a
-  norm :: s -> s
-  norm s = lower s ... upper s
+  normalise :: s -> s
+  normalise s = lower s ... upper s
 
   -- | create a normalised space from two elements
   infix 3 ...
@@ -227,7 +227,7 @@ widen a s = (lower s - a) >.< (upper s + a)
 widenEps ::
   ( Space s,
     FromRational (Element s),
-    Field (Element s)
+    Ring (Element s)
   ) =>
   Element s ->
   s ->

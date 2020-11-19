@@ -45,3 +45,15 @@ import NumHask.Space.XY hiding ()
  - A histogram is a divided Range with a count of elements within each division.
 
 -}
+
+
+-- $extensions
+-- > :t Point 1.0 -1.0
+-- Point 1.0 -1.0
+--   :: (Subtractive a, FromRatio a Integer,
+--       FromRatio (a -> Point a) Integer) =>
+--      a -> Point a
+--
+-- > :set -XNegativeLiterals
+-- > :t Point 1.0 -1.0
+-- Point 1.0 -1.0 :: FromRatio a Integer => Point a

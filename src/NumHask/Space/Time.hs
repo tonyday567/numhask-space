@@ -1,5 +1,7 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NegativeLiterals #-}
 {-# LANGUAGE RebindableSyntax #-}
 {-# OPTIONS_GHC -Wall #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
@@ -23,12 +25,12 @@ module NumHask.Space.Time
   )
 where
 
+import Data.Fixed (Fixed (MkFixed))
 import Data.List (nub)
 import Data.String (String)
 import Data.Time
-import NumHask.Space.Types
 import NumHask.Prelude
-import Data.Fixed (Fixed(MkFixed))
+import NumHask.Space.Types
 
 -- | parse text as per iso8601
 --
@@ -70,12 +72,19 @@ toNominalDiffTime x =
       t1 = UTCTime (addDays days d0) (picosecondsToDiffTime $ floor (secs / 1.0e-12))
    in diffUTCTime t1 t0
 
+-- | Convert from 'DiffTime' to seconds (as a Double)
+--
+-- >>> fromDiffTime $ toDiffTime 1
+-- 1.0
 fromDiffTime :: DiffTime -> Double
 fromDiffTime =
-  (\x -> x / ((10 :: Double) ^ (12 :: Integer))) . fromIntegral . fromEnum
+  (/1e12) . fromIntegral . fromEnum
 
+-- | Convert from seconds (as a Double) to 'DiffTime'
+-- >>> toDiffTime 1
+-- 1s
 toDiffTime :: Double -> DiffTime
-toDiffTime d = toEnum . fromEnum $ d * ((10 :: Double) ^ (12 :: Integer))
+toDiffTime d = toEnum . fromEnum $ d * 1e12
 
 -- | add a TimeGrain to a UTCTime
 --
@@ -232,7 +241,6 @@ placedTimeLabelDiscontinuous posd format n ts = (zip (fst <$> inds') labels, rem
       | p > a = (p : ps, xs, n + 1)
       | otherwise = step (ps, (n - 1, p) : xs, n) a
     (rem', inds) = done $ foldl' step begin ts
-
     inds' = laterTimes inds
     fmt = case format of
       Just f -> unpack f
@@ -254,7 +262,7 @@ autoFormat (Seconds _) = "%R%Q"
 laterTimes :: [(Int, a)] -> [(Int, a)]
 laterTimes [] = []
 laterTimes [x] = [x]
-laterTimes (x : xs) = (\(x0, x1) -> reverse $ x0 : x1) $ foldl' step (x,[]) xs
+laterTimes (x : xs) = (\(x0, x1) -> reverse $ x0 : x1) $ foldl' step (x, []) xs
   where
     step ((n, a), rs) (na, aa) = if na == n then ((na, aa), rs) else ((na, aa), (n, a) : rs)
 
