@@ -15,7 +15,7 @@ module NumHask.Space.Point
     dotP,
     (<.>),
     crossP,
-    flip,
+    flipY,
     Line (..),
     lineSolve,
     lineDistance,
@@ -31,7 +31,7 @@ import Data.Distributive
 import Data.Functor.Classes
 import Data.Functor.Rep
 import GHC.Show (show)
-import NumHask.Prelude hiding (Distributive, flip, rotate, show)
+import NumHask.Prelude hiding (Distributive, rotate, show)
 import qualified NumHask.Prelude as P
 import NumHask.Space.Range
 import NumHask.Space.Types
@@ -235,8 +235,8 @@ crossP :: (Multiplicative a, Subtractive a) => Point a -> Point a -> a
 crossP (Point x y) (Point x' y') = x * y' - y * x'
 
 -- | reflect on x-axis
-flip :: (Subtractive a) => Point a -> Point a
-flip (Point x y) = Point x (- y)
+flipY :: (Subtractive a) => Point a -> Point a
+flipY (Point x y) = Point x (- y)
 
 -- | A line is a composed of 2 'Point's
 data Line a = Line
@@ -288,3 +288,4 @@ lineIntersect (Line p1 p2) (Line p3 p4)
     det = crossP d1 d2
     a = crossP p1 p2
     b = crossP p3 p4
+

@@ -314,7 +314,7 @@ inverseTransform (Transform a b c d e f) =
         Nothing
         (det == zero)
 
--- | An 'Affinity' is something that can be transformed in 2-dimensional space, where `transformed` means a linear matrix operation or a translation (+).
+-- | An 'Affinity' is something that can be subjected to an affine transformation in 2-dimensional space, where affine means a linear matrix operation or a translation (+).
 --
 -- https://en.wikipedia.org/wiki/Affine_transformation
 class Affinity a b | a -> b where

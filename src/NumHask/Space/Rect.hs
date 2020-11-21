@@ -26,6 +26,8 @@ module NumHask.Space.Rect
     gridF,
     aspect,
     ratio,
+    projectOnR,
+    projectOnP,
   )
 where
 
@@ -298,3 +300,29 @@ aspect a = Rect (a * -0.5) (a * 0.5) -0.5 0.5
 -- 2.0
 ratio :: (Field a) => Rect a -> a
 ratio (Rect x z y w) = (z - x) / (w - y)
+
+-- | project a Rect from one Rect to another, preserving relative position, with guards for singleton Rects.
+--
+-- >>> projectOnR one (Rect 0 1 0 1) (Rect 0 0.5 0 0.5)
+-- Rect -0.5 0.0 -0.5 0.0
+projectOnR :: Rect Double -> Rect Double -> Rect Double -> Rect Double
+projectOnR new old@(Rect x z y w) ao@(Rect ox oz oy ow)
+  | x == z && y == w = ao
+  | x == z = Rect ox oz ny nw
+  | y == w = Rect nx nz oy ow
+  | otherwise = a
+  where
+    a@(Rect nx nz ny nw) = projectRect old new ao
+
+-- | project a Point from one Rect to another, preserving relative position, with guards for singleton Rects.
+--
+-- >>> projectOnP one (Rect 0 1 0 1) zero
+-- Point -0.5 -0.5
+projectOnP :: Rect Double -> Rect Double -> Point Double -> Point Double
+projectOnP new old@(Rect x z y w) po@(Point px py)
+  | x == z && y == w = po
+  | x == z = Point px py'
+  | y == w = Point px' py
+  | otherwise = Point px' py'
+  where
+    (Point px' py') = project old new po

@@ -82,20 +82,8 @@ instance (Ord a) => Semigroup (XY a) where
 -- >>> projectOn one (Rect 0 1 0 1) zero
 -- P -0.5 -0.5
 projectOn :: Rect Double -> Rect Double -> XY Double -> XY Double
-projectOn new old@(Rect x z y w) po@(PointXY (Point px py))
-  | x == z && y == w = po
-  | x == z = P px py'
-  | y == w = P px' py
-  | otherwise = P px' py'
-  where
-    (Point px' py') = project old new (toPoint po)
-projectOn new old@(Rect x z y w) ao@(RectXY (Rect ox oz oy ow))
-  | x == z && y == w = ao
-  | x == z = R ox oz ny nw
-  | y == w = R nx nz oy ow
-  | otherwise = RectXY a
-  where
-    a@(Rect nx nz ny nw) = projectRect old new (toRect ao)
+projectOn new old (PointXY p) = PointXY $ projectOnP new old p
+projectOn new old (RectXY r) = RectXY $ projectOnR new old r
 
 -- | project an [XY a] from it's enclosing space to the given space
 --
