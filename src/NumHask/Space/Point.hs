@@ -35,8 +35,6 @@ import NumHask.Prelude hiding (Distributive, rotate, show)
 import qualified NumHask.Prelude as P
 import NumHask.Space.Range
 import NumHask.Space.Types
-import System.Random
-import System.Random.Stateful
 
 -- $setup
 -- >>> :set -XNoImplicitPrelude

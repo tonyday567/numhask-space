@@ -39,7 +39,6 @@ module NumHask.Space.Types
 where
 
 import NumHask.Prelude hiding (rotate)
-import System.Random
 import qualified Prelude as P
 
 -- | Space is a continuous range of numbers that contains elements and has an upper and lower value.
