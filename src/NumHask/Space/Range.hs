@@ -1,5 +1,5 @@
-{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -20,14 +20,13 @@ import Data.Functor.Rep
 import Data.Semigroup.Foldable (Foldable1 (..))
 import Data.Semigroup.Traversable (Traversable1 (..))
 import GHC.Show (show)
-import NumHask.Space.Types as S
 import NumHask.Prelude hiding (show)
+import NumHask.Space.Types as S
 
 -- $setup
 --
 -- >>> :set -XFlexibleContexts
 -- >>> :set -XGADTs
---
 
 -- | A continuous range over type a
 --
@@ -157,14 +156,13 @@ instance (Field a, Eq a, Ord a) => Multiplicative (Range a) where
       m = mid a + mid b
       r = width a * width b
 
-  one = Range (negate one/(one + one)) (one/(one+one))
+  one = Range (negate one / (one + one)) (one / (one + one))
 
-instance (Ord a, Field a) => Divisive (Range a)
-  where
-    recip a = bool (Range (-m - one / (two * r)) (-m + one / (two * r))) zero (r == zero)
-      where
-        m = mid a
-        r = width a
+instance (Ord a, Field a) => Divisive (Range a) where
+  recip a = bool (Range (- m - one / (two * r)) (- m + one / (two * r))) zero (r == zero)
+    where
+      m = mid a
+      r = width a
 
 instance (Field a, Subtractive a, Eq a, Ord a) => Signed (Range a) where
   sign (Range l u) = bool (negate one) one (u >= l)

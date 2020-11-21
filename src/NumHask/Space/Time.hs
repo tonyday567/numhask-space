@@ -4,7 +4,6 @@
 {-# LANGUAGE NegativeLiterals #-}
 {-# LANGUAGE RebindableSyntax #-}
 {-# OPTIONS_GHC -Wall #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 {-# OPTIONS_GHC -fno-warn-type-defaults #-}
 
@@ -89,7 +88,7 @@ toNominalDiffTime x =
 -- 1.0
 fromDiffTime :: DiffTime -> Double
 fromDiffTime =
-  (/1e12) . fromIntegral . fromEnum
+  (/ 1e12) . fromIntegral . fromEnum
 
 -- | Convert from seconds (as a Double) to 'DiffTime'
 -- >>> toDiffTime 1

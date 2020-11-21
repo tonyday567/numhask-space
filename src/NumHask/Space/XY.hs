@@ -1,20 +1,18 @@
 {-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE PatternSynonyms #-}
 
-{- | Unification of 'Point' and 'Rect'.
-
--}
-
+-- | Unification of 'Point' and 'Rect'.
 module NumHask.Space.XY
-  ( XY(..),
+  ( XY (..),
     pattern P,
     pattern R,
     toRect,
     toPoint,
     projectOn,
     projectTo,
-  ) where
+  )
+where
 
 import GHC.Show (show)
 import NumHask.Prelude hiding (show)

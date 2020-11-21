@@ -3,7 +3,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_HADDOCK hide #-}
@@ -339,4 +338,4 @@ instance (Multiplicative a, Additive a) => Affinity (Transform a) a where
 
 -- | Rotate an 'Affinity'
 rotate :: (TrigField a) => a -> Transform a
-rotate a = Transform (cos a) (-sin a) zero (sin a) (cos a) zero
+rotate a = Transform (cos a) (- sin a) zero (sin a) (cos a) zero

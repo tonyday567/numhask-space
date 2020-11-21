@@ -1,10 +1,8 @@
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE DeriveTraversable #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wall #-}
@@ -25,17 +23,18 @@ module NumHask.Space.Point
     lineIntersect,
     translate,
     scaleT,
-    skew)
+    skew,
+  )
 where
 
 import Data.Distributive
 import Data.Functor.Classes
 import Data.Functor.Rep
 import GHC.Show (show)
+import NumHask.Prelude hiding (Distributive, flip, rotate, show)
+import qualified NumHask.Prelude as P
 import NumHask.Space.Range
 import NumHask.Space.Types
-import NumHask.Prelude hiding (show, Distributive, rotate, flip)
-import qualified NumHask.Prelude as P
 import System.Random
 import System.Random.Stateful
 
@@ -63,12 +62,11 @@ import System.Random.Stateful
 --
 -- > space1 [Point 1 0, Point 0 1] :: Rect Double
 -- Rect 0.0 1.0 0.0 1.0
---
-data Point a
-  = Point
+data Point a = Point
   { _x :: a,
     _y :: a
-  } deriving (Eq, Generic)
+  }
+  deriving (Eq, Generic)
 
 instance (Show a) => Show (Point a) where
   show (Point a b) = "Point " <> show a <> " " <> show b
@@ -141,20 +139,20 @@ instance Distributive Point where
       getR (Point _ r) = r
 
 instance (Additive a) => AdditiveAction (Point a) a where
-  (.+) a (Point x y) = Point (a+x) (a+y)
-  (+.) (Point x y) a = Point (a+x) (a+y)
+  (.+) a (Point x y) = Point (a + x) (a + y)
+  (+.) (Point x y) a = Point (a + x) (a + y)
 
 instance (Subtractive a) => SubtractiveAction (Point a) a where
-  (.-) a (Point x y) = Point (a-x) (a-y)
-  (-.) (Point x y) a = Point (x-a) (y-a)
+  (.-) a (Point x y) = Point (a - x) (a - y)
+  (-.) (Point x y) a = Point (x - a) (y - a)
 
 instance (Multiplicative a) => MultiplicativeAction (Point a) a where
-  (.*) a (Point x y) = Point (a*x) (a*y)
-  (*.) (Point x y) a = Point (a*x) (a*y)
+  (.*) a (Point x y) = Point (a * x) (a * y)
+  (*.) (Point x y) a = Point (a * x) (a * y)
 
 instance (Divisive a) => DivisiveAction (Point a) a where
-  (./) a (Point x y) = Point (a/x) (a/y)
-  (/.) (Point x y) a = Point (x/a) (y/a)
+  (./) a (Point x y) = Point (a / x) (a / y)
+  (/.) (Point x y) a = Point (x / a) (y / a)
 
 instance Representable Point where
   type Rep Point = Bool
@@ -174,13 +172,12 @@ instance
   (ExpField a) =>
   Norm (Point a) a
   where
-    norm (Point x y) = sqrt (x*x + y*y)
-    basis p = p /. norm p
+  norm (Point x y) = sqrt (x * x + y * y)
+  basis p = p /. norm p
 
 -- | angle formed by a vector from trhe origin to a Point and the x-axis (Point 1 0). Note that an angle between two points p1 & p2 is thus angle p2 - angle p1
 --
 -- > \u@(Point ux uy) v@(Point vx vy) -> angle v - angle u == sign (ux*vy-uy*vx) * acos (dotP u v / (norm u * norm v))
---
 instance (TrigField a) => Direction (Point a) a where
   angle (Point x y) = atan2 y x
   ray x = Point (cos x) (sin x)
@@ -191,7 +188,7 @@ instance (UniformRange a) => UniformRange (Point a) where
 
 instance (Multiplicative a, Additive a) => Affinity (Point a) a where
   transform (Transform a b c d e f) (Point x y) =
-    Point (a*x + b*y + c) (d*x + e*y + f)
+    Point (a * x + b * y + c) (d * x + e * y + f)
 
 -- | move an 'Affinity' by a 'Point'
 translate :: (TrigField a) => Point a -> Transform a
@@ -225,7 +222,7 @@ gridP f r g = (\x -> Point x (f x)) <$> grid OuterPos r g
 
 -- | dot product
 dotP :: (Multiplicative a, Additive a) => Point a -> Point a -> a
-dotP (Point x y) (Point x' y') = x*x'+y*y'
+dotP (Point x y) (Point x' y') = x * x' + y * y'
 
 infix 4 <.>
 
@@ -235,25 +232,25 @@ infix 4 <.>
 
 -- | cross product
 crossP :: (Multiplicative a, Subtractive a) => Point a -> Point a -> a
-crossP (Point x y) (Point x' y') = x*y'-y*x'
+crossP (Point x y) (Point x' y') = x * y' - y * x'
 
 -- | reflect on x-axis
 flip :: (Subtractive a) => Point a -> Point a
-flip (Point x y) = Point x (-y)
+flip (Point x y) = Point x (- y)
 
 -- | A line is a composed of 2 'Point's
-data Line a =
-  Line
+data Line a = Line
   { lineStart :: Point a,
     lineEnd :: Point a
-  } deriving (Show, Eq, Functor, Foldable, Traversable)
+  }
+  deriving (Show, Eq, Functor, Foldable, Traversable)
 
 instance (Multiplicative a, Additive a) => Affinity (Line a) a where
   transform t (Line s e) = Line (transform t s) (transform t e)
 
 -- | Return the parameters (a, b, c) for the line equation @a*x + b*y + c = 0@.
 lineSolve :: ExpField a => Line a -> (a, a, a)
-lineSolve (Line p1 p2) = (-my, mx, c)
+lineSolve (Line p1 p2) = (- my, mx, c)
   where
     m@(Point mx my) = basis (p2 - p1)
     c = crossP p1 m
@@ -264,20 +261,20 @@ lineDistance :: (ExpField a) => Line a -> Point a -> a
 lineDistance (Line (Point x1 y1) (Point x2 y2)) =
   let dy = y1 - y2
       dx = x2 - x1
-      d = sqrt(dx*dx + dy*dy)
-  in dy `seq` dx `seq` d `seq`
-     \(Point x y) -> (x-x1)*dy/d + (y-y1)*dx/d
+      d = sqrt (dx * dx + dy * dy)
+   in dy `seq` dx `seq` d
+        `seq` \(Point x y) -> (x - x1) * dy / d + (y - y1) * dx / d
 
 -- | Return the point on the line closest to the given point.
 closestPoint :: (Field a) => Line a -> Point a -> Point a
 closestPoint (Line p1 p2) p3 = Point px py
   where
     d@(Point dx dy) = p2 - p1
-    u = dy*_y p3 + dx*_x p3
-    v = _x p1*_y p2 - _x p2*_y p1
+    u = dy * _y p3 + dx * _x p3
+    v = _x p1 * _y p2 - _x p2 * _y p1
     m = d <.> d
-    px = (dx*u + dy*v) / m
-    py = (dy*u - dx*v) / m
+    px = (dx * u + dy * v) / m
+    py = (dy * u - dx * v) / m
 
 -- | Calculate the intersection of two lines.  If the determinant is
 -- less than tolerance (parallel or coincident lines), return Nothing.

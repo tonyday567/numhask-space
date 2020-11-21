@@ -8,9 +8,7 @@
 {-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wall #-}
-{-# OPTIONS_GHC -Wincomplete-patterns #-}
 
 -- | A (finite) two-dimensional plane, implemented as a composite of a 'Point' of 'Range's.
 module NumHask.Space.Rect
@@ -32,6 +30,7 @@ module NumHask.Space.Rect
 where
 
 import Data.Distributive as D
+import Data.Foldable (Foldable (foldr1))
 import Data.Functor.Compose
 import Data.Functor.Rep
 import GHC.Show (show)
@@ -39,7 +38,6 @@ import NumHask.Prelude hiding (Distributive, rotate, show)
 import NumHask.Space.Point
 import NumHask.Space.Range
 import NumHask.Space.Types
-import Data.Foldable (Foldable(foldr1))
 
 -- $setup
 --

@@ -1,5 +1,5 @@
-{-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE NegativeLiterals #-}
+{-# LANGUAGE RebindableSyntax #-}
 {-# OPTIONS_GHC -Wall #-}
 {-# OPTIONS_GHC -fno-warn-type-defaults #-}
 
@@ -42,20 +42,24 @@ import NumHask.Space.XY hiding ()
 -- >>> import NumHask.Space
 -- >>> Point 1 1
 -- Point 1 1
+--
+-- >>> one :: Range Double
+-- Range -0.5 0.5
+--
+-- >>> grid OuterPos (Range 0 50 :: Range Double) 5
+-- [0.0,10.0,20.0,30.0,40.0,50.0]
 
-{- $space
-
- Space is an interesting cross-section of many programming domains.
-
- - A 'Range' is a 'Space' of numbers.
-
- - A 'Rect' is a 'Space' of 'Point's. It can also be a 'Space' of 'Rect's (but this is not yet coded up here).
-
- - A time span is a 'Space' containing moments of time.
-
- - A 'Histogram' is a divided 'Range' with a count of elements within each division.
-
--}
+-- $space
+--
+-- Space is an interesting cross-section of many programming domains.
+--
+-- - A 'Range' is a 'Space' of numbers.
+--
+-- - A 'Rect' is a 'Space' of 'Point's. It can also be a 'Space' of 'Rect's (but this is not yet coded up here).
+--
+-- - A time span is a 'Space' containing moments of time.
+--
+-- - A 'Histogram' is a divided 'Range' with a count of elements within each division.
 
 -- $extensions
 -- > :t Point 1.0 -1.0

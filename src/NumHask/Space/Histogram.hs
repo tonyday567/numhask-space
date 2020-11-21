@@ -1,5 +1,5 @@
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE RebindableSyntax #-}
 {-# OPTIONS_GHC -Wall #-}
 
 -- | A histogram, if you squint, is a series of contiguous 'Range's, annotated with values.
@@ -20,19 +20,18 @@ where
 import qualified Data.List as List
 import qualified Data.Map as Map
 import Data.TDigest
+import NumHask.Prelude
 import NumHask.Space.Range
 import NumHask.Space.Rect
 import NumHask.Space.Types
-import NumHask.Prelude
 
 -- | This Histogram is a list of contiguous boundaries (a boundary being the lower edge of one bucket and the upper edge of another), and a value (usually a count) for each bucket, represented here as a map
 --
 -- Overs and Unders are contained in key = 0 and key = length cuts
-data Histogram
-  = Histogram
-      { cuts :: [Double], -- bucket boundaries
-        values :: Map.Map Int Double -- bucket counts
-      }
+data Histogram = Histogram
+  { cuts :: [Double], -- bucket boundaries
+    values :: Map.Map Int Double -- bucket counts
+  }
   deriving (Show, Eq)
 
 -- | Whether or not to ignore unders and overs.  If overs and unders are dealt with, IncludeOvers supplies an assumed width for the outer buckets.
