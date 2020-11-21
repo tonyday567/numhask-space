@@ -2,7 +2,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wall #-}
 
--- | A histogram, if you squint, is a series of contiguous ranges, annotated with values.
+-- | A histogram, if you squint, is a series of contiguous 'Range's, annotated with values.
 module NumHask.Space.Histogram
   ( Histogram (..),
     DealOvers (..),
@@ -118,7 +118,9 @@ fromQuantiles qs xs = Histogram xs (Map.fromList $ zip [1 ..] (diffq qs))
     diffq (x : xs') = (reverse . snd) $ foldl' step (x, []) xs'
     step (a0, xs') a = (a, (a - a0) : xs')
 
--- | normalize a histogram so that sum values = one
+-- | normalize a histogram
+--
+-- > \h -> sum (values $ freq h) == one
 --
 -- >>> freq $ fill [0,50,100] [1..100]
 -- Histogram {cuts = [0.0,50.0,100.0], values = fromList [(1,0.5),(2,0.5)]}

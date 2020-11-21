@@ -2,8 +2,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE PatternSynonyms #-}
 
-{- | Unification of a point on the XY-plane and a rectangle on the XY-plane.
-
+{- | Unification of 'Point' and 'Rect'.
 
 -}
 
@@ -17,7 +16,8 @@ module NumHask.Space.XY
     projectTo,
   ) where
 
-import NumHask.Prelude
+import GHC.Show (show)
+import NumHask.Prelude hiding (show)
 import NumHask.Space.Point
 import NumHask.Space.Rect
 import NumHask.Space.Types
@@ -26,7 +26,11 @@ import NumHask.Space.Types
 data XY a
   = PointXY (Point a)
   | RectXY (Rect a)
-  deriving (Eq, Show, Functor)
+  deriving (Eq, Functor)
+
+instance (Show a) => Show (XY a) where
+  show (PointXY (Point x y)) = "P " <> show x <> " " <> show y
+  show (RectXY (Rect x z y w)) = "R " <> show x <> " " <> show z <> " " <> show y <> " " <> show w
 
 -- | make an XY from a point
 pattern P :: a -> a -> XY a
@@ -62,12 +66,12 @@ instance (Ord a, Field a, Signed a) => Signed (XY a) where
 
 -- * Natural transformations
 
--- | Convert a spot to a Rect
+-- | Convert an XY to a Rect
 toRect :: XY a -> Rect a
 toRect (PointXY (Point x y)) = Rect x x y y
 toRect (RectXY a) = a
 
--- | Convert a spot to a Point
+-- | Convert an XY to a Point
 toPoint :: (Ord a, Field a) => XY a -> Point a
 toPoint (PointXY (Point x y)) = Point x y
 toPoint (RectXY (Ranges x y)) = Point (mid x) (mid y)
@@ -78,27 +82,27 @@ instance (Ord a) => Semigroup (XY a) where
 -- | project an XY from one Rect to another, preserving relative position.
 --
 -- >>> projectOn one (Rect 0 1 0 1) zero
--- PointXY Point -0.5 -0.5
+-- P -0.5 -0.5
 projectOn :: Rect Double -> Rect Double -> XY Double -> XY Double
 projectOn new old@(Rect x z y w) po@(PointXY (Point px py))
   | x == z && y == w = po
-  | x == z = (P px py')
-  | y == w = (P px' py)
-  | otherwise = (P px' py')
+  | x == z = P px py'
+  | y == w = P px' py
+  | otherwise = P px' py'
   where
     (Point px' py') = project old new (toPoint po)
 projectOn new old@(Rect x z y w) ao@(RectXY (Rect ox oz oy ow))
   | x == z && y == w = ao
-  | x == z = (R ox oz ny nw)
-  | y == w = (R nx nz oy ow)
+  | x == z = R ox oz ny nw
+  | y == w = R nx nz oy ow
   | otherwise = RectXY a
   where
     a@(Rect nx nz ny nw) = projectRect old new (toRect ao)
 
--- | project a [Spot a] from it's folded space to the given area
+-- | project an [XY a] from it's enclosing space to the given space
 --
--- >>> projectTo one (SpotPoint <$> zipWith Point [0..2] [0..2])
--- [SpotPoint Point -0.5 -0.5,SpotPoint Point 0.0 0.0,SpotPoint Point 0.5 0.5]
+-- >>> projectTo one (zipWith P [0..2] [0..2])
+-- [P -0.5 -0.5,P 0.0 0.0,P 0.5 0.5]
 projectTo :: Rect Double -> [XY Double] -> [XY Double]
 projectTo _ [] = []
 projectTo vb (x : xs) = projectOn vb (toRect $ sconcat (x :| xs)) <$> (x : xs)

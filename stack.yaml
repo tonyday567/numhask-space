@@ -4,7 +4,9 @@ packages:
   - .
 
 extra-deps:
+  - protolude-0.3.0
   # - numhask-0.7.0.0
   - git: https://github.com/tonyday567/numhask.git
-    commit: aefb9955e8b4bdf76f4eb8c81177187aff1471c1
-
+    commit: 08f55b5e7dff335504541a2c9f0228f42b4c1c62
+  - random-1.2.0
+  - splitmix-0.1.0.3

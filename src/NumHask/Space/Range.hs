@@ -35,12 +35,12 @@ import NumHask.Prelude hiding (show)
 -- >>> a
 -- Range -1 1
 --
--- Num instance based on interval arithmetic (with Ranges normalising to lower ... upper)
---
 -- >>> a + a
 -- Range -2 2
+--
 -- >>> a * a
--- Range -1.0 1.0
+-- Range -2.0 2.0
+--
 -- >>> (+1) <$> (Range 1 2)
 -- Range 2 3
 --
@@ -152,9 +152,19 @@ instance (Subtractive a, Eq a, Ord a) => Subtractive (Range a) where
   negate (Range l u) = negate u ... negate l
 
 instance (Field a, Eq a, Ord a) => Multiplicative (Range a) where
-  (Range l u) * (Range l' u') =
-    space1 [l * l', l * u', u * l', u * u']
+  a * b = bool (Range (m - r / (one + one)) (m + r / (one + one))) zero (a == zero || b == zero)
+    where
+      m = mid a + mid b
+      r = width a * width b
+
   one = Range (negate one/(one + one)) (one/(one+one))
+
+instance (Ord a, Field a) => Divisive (Range a)
+  where
+    recip a = bool (Range (-m - one / (two * r)) (-m + one / (two * r))) zero (r == zero)
+      where
+        m = mid a
+        r = width a
 
 instance (Field a, Subtractive a, Eq a, Ord a) => Signed (Range a) where
   sign (Range l u) = bool (negate one) one (u >= l)

@@ -8,10 +8,11 @@
 {-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wall #-}
 {-# OPTIONS_GHC -Wincomplete-patterns #-}
 
--- | a two-dimensional plane, implemented as a composite of a 'Point' of 'Range's.
+-- | A (finite) two-dimensional plane, implemented as a composite of a 'Point' of 'Range's.
 module NumHask.Space.Rect
   ( Rect (..),
     pattern Rect,
@@ -22,7 +23,7 @@ module NumHask.Space.Rect
     foldRect,
     foldRectUnsafe,
     addPoint,
-    rotateRect,
+    rotationBound,
     gridR,
     gridF,
     aspect,
@@ -43,13 +44,25 @@ import Data.Foldable (Foldable(foldr1))
 -- $setup
 --
 -- >>> :set -XFlexibleContexts
--- >>> :set -XGADTs
 
--- | a rectangular space often representing a 2-dimensional or XY plane.
+-- | a rectangular space often representing a finite 2-dimensional or XY plane.
+--
+-- >>> one :: Rect Double
+-- Rect -0.5 0.5 -0.5 0.5
+--
+-- >>> zero :: Rect Double
+-- Rect 0.0 0.0 0.0 0.0
+--
+-- >>> one + one :: Rect Double
+-- Rect -1.0 1.0 -1.0 1.0
 --
 -- >>> let a = Rect (-1.0) 1.0 (-2.0) 4.0
 -- >>> a
 -- Rect -1.0 1.0 -2.0 4.0
+--
+-- >>> a * one
+-- Rect -1.0 1.0 -2.0 4.0
+--
 -- >>> let (Ranges x y) = a
 -- >>> x
 -- Range -1.0 1.0
@@ -217,14 +230,12 @@ instance (Subtractive a) => Subtractive (Rect a) where
 
 instance (Ord a, Field a) => Multiplicative (Rect a) where
   (*) (Ranges x0 y0) (Ranges x1 y1) =
-    Ranges (x0 `rtimes` x1) (y0 `rtimes` y1)
-    where
-      rtimes a b = bool (Range (m - r / (one + one)) (m + r / (one + one))) zero (a == zero || b == zero)
-        where
-          m = mid a + mid b
-          r = width a * width b
+    Ranges (x0 * x1) (y0 * y1)
 
   one = Ranges one one
+
+instance (Ord a, Field a) => Divisive (Rect a) where
+  recip (Ranges x y) = Ranges (recip x) (recip y)
 
 instance (Ord a, Field a) => Signed (Rect a) where
   sign (Rect x z y w) = bool (negate one) one (z >= x && (w >= y))
@@ -254,11 +265,10 @@ addPoint (Point x' y') (Rect x z y w) = Rect (x + x') (z + x') (y + y') (w + y')
 
 -- | rotate the corners of a Rect by x degrees relative to the origin, and fold to a new Rect
 --
--- >>> rotateRect (pi/4) one
--- Rect -0.7071067811865475 0.7071067811865475 -5.551115123125783e-17 5.551115123125783e-17
-rotateRect :: (TrigField a, Ord a) => a -> Rect a -> Rect a
-rotateRect d r =
-  space1 $ rotate d <$> corners r
+-- >>> rotationBound (pi/4) one
+-- Rect -0.7071067811865475 0.7071067811865475 -0.7071067811865475 0.7071067811865475
+rotationBound :: (TrigField a, Ord a) => a -> Rect a -> Rect a
+rotationBound d = space1 . fmap (rotate d |.) . corners4
 
 -- | Create Rects for a formulae y = f(x) across an x range where the y range is Range 0 y
 --

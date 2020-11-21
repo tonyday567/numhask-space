@@ -1,17 +1,22 @@
+{-# LANGUAGE RebindableSyntax #-}
+{-# LANGUAGE NegativeLiterals #-}
 {-# OPTIONS_GHC -Wall #-}
+{-# OPTIONS_GHC -fno-warn-type-defaults #-}
 
--- | A continuous set of numbers.
+-- | A continuous set of numbers, with a lower and upper bound.
 --
--- Mathematics does not define a space, leaving library devs to experiment.
+-- Mathematics does not rigorously define a space, leaving library devs free to push boundaries on what it all means.
 --
 -- https://en.wikipedia.org/wiki/Space_(mathematics)
 module NumHask.Space
-  ( -- * Space
+  ( -- * Usage
+    -- $setup
+
+    -- * Space
     -- $space
     module NumHask.Space.Types,
 
     -- * Instances
-    -- $instances
     module NumHask.Space.Point,
     module NumHask.Space.Range,
     module NumHask.Space.Rect,
@@ -29,23 +34,28 @@ import NumHask.Space.Time hiding ()
 import NumHask.Space.Types hiding ()
 import NumHask.Space.XY hiding ()
 
--- $space
--- The final frontier.
+-- $setup
+--
+-- >>> :set -XRebindableSyntax
+-- >>> :set -XNegativeLiterals
+-- >>> import NumHask.Prelude
+-- >>> import NumHask.Space
+-- >>> Point 1 1
+-- Point 1 1
 
-{- $instances
+{- $space
 
  Space is an interesting cross-section of many programming domains.
 
- - A Range is a Space of numbers.
+ - A 'Range' is a 'Space' of numbers.
 
- - A Rect is a Space of Points.
+ - A 'Rect' is a 'Space' of 'Point's. It can also be a 'Space' of 'Rect's (but this is not yet coded up here).
 
- - A time span is a space containing moments of time.
+ - A time span is a 'Space' containing moments of time.
 
- - A histogram is a divided Range with a count of elements within each division.
+ - A 'Histogram' is a divided 'Range' with a count of elements within each division.
 
 -}
-
 
 -- $extensions
 -- > :t Point 1.0 -1.0
