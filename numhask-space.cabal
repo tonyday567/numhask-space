@@ -4,7 +4,7 @@ version: 0.7.0.0
 synopsis:
   Numerical spaces.
 description:
-    This package provides a type, `Space`, which represents a set of numbers with a `lower` and `upper` bound.
+    This package provides a type, 'Space', which represents a set of numbers with a lower and upper bound.
     .
     == Usage
     .

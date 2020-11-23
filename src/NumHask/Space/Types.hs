@@ -41,7 +41,7 @@ where
 import NumHask.Prelude hiding (rotate)
 import qualified Prelude as P
 
--- | Space is a continuous range of numbers that contains elements and has an upper and lower value.
+-- | A 'Space' is a continuous set of numbers. Continuous here means that the set has an upper and lower bound, and an element that is between these two bounds is a member of the 'Space'.
 --
 -- > a `union` b == b `union` a
 -- > a `intersection` b == b `intersection` a
