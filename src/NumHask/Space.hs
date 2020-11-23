@@ -3,11 +3,8 @@
 {-# OPTIONS_GHC -Wall #-}
 {-# OPTIONS_GHC -fno-warn-type-defaults #-}
 
--- | A continuous set of numbers, with a lower and upper bound.
---
--- Mathematics does not rigorously define a space, leaving library devs free to push boundaries on what it all means.
---
--- https://en.wikipedia.org/wiki/Space_(mathematics)
+-- | Mathematics does not rigorously define a [space](https://en.wikipedia.org/wiki/Space_(mathematics\)), leaving library devs free to push boundaries on what a space is.
+-- 
 module NumHask.Space
   ( -- * Usage
     -- $setup

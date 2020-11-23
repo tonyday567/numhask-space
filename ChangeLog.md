@@ -6,6 +6,7 @@
 * Added `Line` and associated functions.
 * Support for random-1.2; `uniformS` and `uniformSs`
 * Shifted to zero-centered, width scaling `Range` multiplication.
+* Added `average` & `quantile` to NumHask.Space.Histogram
 * Improved haddocks
 * Extended doctests
 
