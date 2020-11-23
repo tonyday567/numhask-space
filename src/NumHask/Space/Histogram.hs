@@ -14,12 +14,15 @@ module NumHask.Space.Histogram
     quantileFold,
     fromQuantiles,
     freq,
+    average,
+    quantiles,
+    quantile,
   )
 where
 
 import qualified Data.List as List
 import qualified Data.Map as Map
-import Data.TDigest
+import qualified Data.TDigest as TD
 import NumHask.Prelude
 import NumHask.Space.Range
 import NumHask.Space.Rect
@@ -101,9 +104,9 @@ regularQuantiles n xs = quantileFold qs xs
 quantileFold :: [Double] -> [Double] -> [Double]
 quantileFold qs xs = done $ foldl' step begin xs
   where
-    step x a = Data.TDigest.insert a x
-    begin = tdigest ([] :: [Double]) :: TDigest 25
-    done x = fromMaybe (0 / 0) . (`quantile` compress x) <$> qs
+    step x a = TD.insert a x
+    begin = TD.tdigest ([] :: [Double]) :: TD.TDigest 25
+    done x = fromMaybe (0 / 0) . (`TD.quantile` TD.compress x) <$> qs
 
 -- | take a specification of quantiles and make a Histogram
 --
@@ -125,3 +128,31 @@ fromQuantiles qs xs = Histogram xs (Map.fromList $ zip [1 ..] (diffq qs))
 -- Histogram {cuts = [0.0,50.0,100.0], values = fromList [(1,0.5),(2,0.5)]}
 freq :: Histogram -> Histogram
 freq (Histogram cs vs) = Histogram cs $ Map.map (* recip (sum vs)) vs
+
+-- | average
+--
+-- >>> average [0..1000]
+-- 500.0
+average :: (Foldable f) => f Double -> Double
+average xs = sum xs / fromIntegral (length xs)
+
+-- | Regularly spaced (approx) quantiles
+--
+-- >>> quantiles 5 [1..1000]
+-- [1.0,200.5,400.5,600.5000000000001,800.5,1000.0]
+--
+quantiles :: (Foldable f) => Int -> f Double -> [Double]
+quantiles n xs =
+  ( \x ->
+      fromMaybe 0 $
+        TD.quantile x (TD.tdigest xs :: TD.TDigest 25)
+  )
+    <$> ((/ fromIntegral n) . fromIntegral <$> [0 .. n])
+
+-- | single (approx) quantile
+--
+-- >>> quantile 0.1 [1..1000]
+-- 100.5
+--
+quantile :: (Foldable f) => Double -> f Double -> Double
+quantile p xs = fromMaybe 0 $ TD.quantile p (TD.tdigest xs :: TD.TDigest 25)
