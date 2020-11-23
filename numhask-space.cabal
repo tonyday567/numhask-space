@@ -1,10 +1,19 @@
 cabal-version: 2.4
 name: numhask-space
-version: 0.6.1
+version: 0.7.0.0
 synopsis:
-  numerical spaces
+  Numerical spaces.
 description:
-  Spaces and the numerical elements that inhabit them.
+    @numhask-space@ provides support for spaces where [space](https://en.wikipedia.org/wiki/Space_(mathematics\)) is defined as a set of numbers with a lower and upper bound.
+    .
+    == Usage
+    .
+    >>> {-# LANGUAGE NegativeLiterals #-}
+    >>> {-# LANGUAGE RebindableSyntax #-}
+    >>> import NumHask.Prelude
+    >>> import NumHask.Space
+    .
+
 category:
   mathematics
 homepage:
@@ -23,6 +32,10 @@ license-file:
   LICENSE
 build-type:
   Simple
+tested-with: GHC ==8.8.4 || ==8.10.2
+extra-source-files:
+  readme.md
+  ChangeLog.md
 source-repository head
   type:
     git
@@ -39,16 +52,12 @@ library
     -Wincomplete-uni-patterns
     -Wredundant-constraints
   default-extensions:
-    NegativeLiterals
-    NoImplicitPrelude
-    OverloadedStrings
-    UnicodeSyntax
   build-depends:
     adjunctions >=4.0 && <5,
     base >=4.7 && <5,
     containers >= 0.6 && < 0.7,
     distributive >=0.2.2 && <1,
-    numhask >= 0.6 && < 0.7,
+    numhask >= 0.7 && < 0.8,
     semigroupoids >=5 && <6,
     tdigest >= 0.2.1 && < 0.3,
     text >= 1.2.3.1 && <2,
@@ -73,7 +82,7 @@ test-suite test
   build-depends:
     base >=4.7 && <5,
     doctest >= 0.16 && < 0.18,
-    numhask >= 0.6 && < 0.7,
+    numhask >= 0.7 && < 0.8,
   default-language: Haskell2010
   ghc-options:
     -Wall
@@ -82,7 +91,3 @@ test-suite test
     -Wincomplete-uni-patterns
     -Wredundant-constraints
   default-extensions:
-    NegativeLiterals
-    NoImplicitPrelude
-    OverloadedStrings
-    UnicodeSyntax

@@ -1,8 +1,8 @@
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE RebindableSyntax #-}
 {-# OPTIONS_GHC -Wall #-}
 
--- | A histogram, if you squint, is a series of contiguous ranges, annotated with values.
+-- | A histogram, if you squint, is a series of contiguous 'Range's, annotated with values.
 module NumHask.Space.Histogram
   ( Histogram (..),
     DealOvers (..),
@@ -14,25 +14,27 @@ module NumHask.Space.Histogram
     quantileFold,
     fromQuantiles,
     freq,
+    average,
+    quantiles,
+    quantile,
   )
 where
 
 import qualified Data.List as List
 import qualified Data.Map as Map
-import Data.TDigest
+import qualified Data.TDigest as TD
+import NumHask.Prelude
 import NumHask.Space.Range
 import NumHask.Space.Rect
 import NumHask.Space.Types
-import NumHask.Prelude
 
 -- | This Histogram is a list of contiguous boundaries (a boundary being the lower edge of one bucket and the upper edge of another), and a value (usually a count) for each bucket, represented here as a map
 --
 -- Overs and Unders are contained in key = 0 and key = length cuts
-data Histogram
-  = Histogram
-      { cuts :: [Double], -- bucket boundaries
-        values :: Map.Map Int Double -- bucket counts
-      }
+data Histogram = Histogram
+  { cuts :: [Double], -- bucket boundaries
+    values :: Map.Map Int Double -- bucket counts
+  }
   deriving (Show, Eq)
 
 -- | Whether or not to ignore unders and overs.  If overs and unders are dealt with, IncludeOvers supplies an assumed width for the outer buckets.
@@ -102,9 +104,9 @@ regularQuantiles n xs = quantileFold qs xs
 quantileFold :: [Double] -> [Double] -> [Double]
 quantileFold qs xs = done $ foldl' step begin xs
   where
-    step x a = Data.TDigest.insert a x
-    begin = tdigest ([] :: [Double]) :: TDigest 25
-    done x = fromMaybe (0 / 0) . (`quantile` compress x) <$> qs
+    step x a = TD.insert a x
+    begin = TD.tdigest ([] :: [Double]) :: TD.TDigest 25
+    done x = fromMaybe (0 / 0) . (`TD.quantile` TD.compress x) <$> qs
 
 -- | take a specification of quantiles and make a Histogram
 --
@@ -118,9 +120,39 @@ fromQuantiles qs xs = Histogram xs (Map.fromList $ zip [1 ..] (diffq qs))
     diffq (x : xs') = (reverse . snd) $ foldl' step (x, []) xs'
     step (a0, xs') a = (a, (a - a0) : xs')
 
--- | normalize a histogram so that sum values = one
+-- | normalize a histogram
+--
+-- > \h -> sum (values $ freq h) == one
 --
 -- >>> freq $ fill [0,50,100] [1..100]
 -- Histogram {cuts = [0.0,50.0,100.0], values = fromList [(1,0.5),(2,0.5)]}
 freq :: Histogram -> Histogram
 freq (Histogram cs vs) = Histogram cs $ Map.map (* recip (sum vs)) vs
+
+-- | average
+--
+-- >>> average [0..1000]
+-- 500.0
+average :: (Foldable f) => f Double -> Double
+average xs = sum xs / fromIntegral (length xs)
+
+-- | Regularly spaced (approx) quantiles
+--
+-- >>> quantiles 5 [1..1000]
+-- [1.0,200.5,400.5,600.5000000000001,800.5,1000.0]
+--
+quantiles :: (Foldable f) => Int -> f Double -> [Double]
+quantiles n xs =
+  ( \x ->
+      fromMaybe 0 $
+        TD.quantile x (TD.tdigest xs :: TD.TDigest 25)
+  )
+    <$> ((/ fromIntegral n) . fromIntegral <$> [0 .. n])
+
+-- | single (approx) quantile
+--
+-- >>> quantile 0.1 [1..1000]
+-- 100.5
+--
+quantile :: (Foldable f) => Double -> f Double -> Double
+quantile p xs = fromMaybe 0 $ TD.quantile p (TD.tdigest xs :: TD.TDigest 25)

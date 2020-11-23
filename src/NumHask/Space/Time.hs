@@ -1,8 +1,9 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NegativeLiterals #-}
 {-# LANGUAGE RebindableSyntax #-}
 {-# OPTIONS_GHC -Wall #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 {-# OPTIONS_GHC -fno-warn-type-defaults #-}
 
@@ -23,12 +24,21 @@ module NumHask.Space.Time
   )
 where
 
+import Data.Fixed (Fixed (MkFixed))
 import Data.List (nub)
 import Data.String (String)
 import Data.Time
-import NumHask.Space.Types
 import NumHask.Prelude
-import Data.Fixed (Fixed(MkFixed))
+import NumHask.Space.Types
+
+-- $setup
+--
+-- >>> :set -XRebindableSyntax
+-- >>> :set -XNegativeLiterals
+-- >>> import NumHask.Prelude
+-- >>> import NumHask.Space
+-- >>> Point 1 1
+-- Point 1 1
 
 -- | parse text as per iso8601
 --
@@ -58,9 +68,11 @@ grainSecs (Hours n) = fromIntegral n * 60 * 60
 grainSecs (Minutes n) = fromIntegral n * 60
 grainSecs (Seconds n) = n
 
+-- | convenience conversion to Double
 fromNominalDiffTime :: NominalDiffTime -> Double
-fromNominalDiffTime t = let (MkFixed i) = (nominalDiffTimeToSeconds t) in (fromInteger i) * 1e-12
+fromNominalDiffTime t = let (MkFixed i) = nominalDiffTimeToSeconds t in fromInteger i * 1e-12
 
+-- | convenience conversion from Double
 toNominalDiffTime :: Double -> NominalDiffTime
 toNominalDiffTime x =
   let d0 = ModifiedJulianDay 0
@@ -70,25 +82,32 @@ toNominalDiffTime x =
       t1 = UTCTime (addDays days d0) (picosecondsToDiffTime $ floor (secs / 1.0e-12))
    in diffUTCTime t1 t0
 
+-- | Convert from 'DiffTime' to seconds (as a Double)
+--
+-- >>> fromDiffTime $ toDiffTime 1
+-- 1.0
 fromDiffTime :: DiffTime -> Double
 fromDiffTime =
-  (\x -> x / ((10 :: Double) ^ (12 :: Integer))) . fromIntegral . fromEnum
+  (/ 1e12) . fromIntegral . fromEnum
 
+-- | Convert from seconds (as a Double) to 'DiffTime'
+-- >>> toDiffTime 1
+-- 1s
 toDiffTime :: Double -> DiffTime
-toDiffTime d = toEnum . fromEnum $ d * ((10 :: Double) ^ (12 :: Integer))
+toDiffTime d = toEnum . fromEnum $ d * 1e12
 
 -- | add a TimeGrain to a UTCTime
 --
--- >>> addGrain (Years 1) 5 (UTCTime (fromGregorian 2015 2 28) 0)
+-- >>> addGrain (Years 1) 5 (UTCTime (fromGregorian 2015 2 28) (toDiffTime 0))
 -- 2020-02-29 00:00:00 UTC
 --
--- >>> addGrain (Months 1) 1 (UTCTime (fromGregorian 2015 2 28) 0)
+-- >>> addGrain (Months 1) 1 (UTCTime (fromGregorian 2015 2 28) (toDiffTime 0))
 -- 2015-03-31 00:00:00 UTC
 --
--- >>> addGrain (Hours 6) 5 (UTCTime (fromGregorian 2015 2 28) 0)
+-- >>> addGrain (Hours 6) 5 (UTCTime (fromGregorian 2015 2 28) (toDiffTime 0))
 -- 2015-03-01 06:00:00 UTC
 --
--- >>> addGrain (Seconds 0.001) (60*1000+1) (UTCTime (fromGregorian 2015 2 28) 0)
+-- >>> addGrain (Seconds 0.001) (60*1000+1) (UTCTime (fromGregorian 2015 2 28) (toDiffTime 0))
 -- 2015-02-28 00:01:00.001 UTC
 addGrain :: TimeGrain -> Int -> UTCTime -> UTCTime
 addGrain (Years n) x (UTCTime d t) =
@@ -129,19 +148,19 @@ addHalfGrain g@(Seconds _) d = addUTCTime (toNominalDiffTime (0.5 * grainSecs g)
 
 -- | compute the floor UTCTime based on the timegrain
 --
--- >>> floorGrain (Years 5) (UTCTime (fromGregorian 1999 1 1) 0)
+-- >>> floorGrain (Years 5) (UTCTime (fromGregorian 1999 1 1) (toDiffTime 0))
 -- 1995-12-31 00:00:00 UTC
 --
--- >>> floorGrain (Months 3) (UTCTime (fromGregorian 2016 12 30) 0)
+-- >>> floorGrain (Months 3) (UTCTime (fromGregorian 2016 12 30) (toDiffTime 0))
 -- 2016-09-30 00:00:00 UTC
 --
--- >>> floorGrain (Days 5) (UTCTime (fromGregorian 2016 12 30) 1)
+-- >>> floorGrain (Days 5) (UTCTime (fromGregorian 2016 12 30) (toDiffTime 1))
 -- 2016-12-30 00:00:00 UTC
 --
 -- >>> floorGrain (Minutes 15) (UTCTime (fromGregorian 2016 12 30) (toDiffTime $ 15*60+1))
 -- 2016-12-30 00:15:00 UTC
 --
--- >>> floorGrain (Seconds 0.1) (UTCTime (fromGregorian 2016 12 30) 0.12)
+-- >>> floorGrain (Seconds 0.1) (UTCTime (fromGregorian 2016 12 30) ((toDiffTime 0.12)))
 -- 2016-12-30 00:00:00.1 UTC
 floorGrain :: TimeGrain -> UTCTime -> UTCTime
 floorGrain (Years n) (UTCTime d _) = UTCTime (addDays (-1) $ fromGregorian y' 1 1) (secondsToDiffTime 0)
@@ -168,19 +187,19 @@ floorGrain (Seconds secs) u@(UTCTime _ t) = addUTCTime x u
 
 -- | compute the ceiling UTCTime based on the timegrain
 --
--- >>> ceilingGrain (Years 5) (UTCTime (fromGregorian 1999 1 1) 0)
+-- >>> ceilingGrain (Years 5) (UTCTime (fromGregorian 1999 1 1) (toDiffTime 0))
 -- 2000-12-31 00:00:00 UTC
 --
--- >>> ceilingGrain (Months 3) (UTCTime (fromGregorian 2016 12 30) 0)
+-- >>> ceilingGrain (Months 3) (UTCTime (fromGregorian 2016 12 30) (toDiffTime 0))
 -- 2016-12-31 00:00:00 UTC
 --
--- >>> ceilingGrain (Days 5) (UTCTime (fromGregorian 2016 12 30) 1)
+-- >>> ceilingGrain (Days 5) (UTCTime (fromGregorian 2016 12 30) (toDiffTime 1))
 -- 2016-12-31 00:00:00 UTC
 --
 -- >>> ceilingGrain (Minutes 15) (UTCTime (fromGregorian 2016 12 30) (toDiffTime $ 15*60+1))
 -- 2016-12-30 00:30:00 UTC
 --
--- >>> ceilingGrain (Seconds 0.1) (UTCTime (fromGregorian 2016 12 30) 0.12)
+-- >>> ceilingGrain (Seconds 0.1) (UTCTime (fromGregorian 2016 12 30) (toDiffTime 0.12))
 -- 2016-12-30 00:00:00.2 UTC
 ceilingGrain :: TimeGrain -> UTCTime -> UTCTime
 ceilingGrain (Years n) (UTCTime d _) = UTCTime (addDays (-1) $ fromGregorian y' 1 1) (secondsToDiffTime 0)
@@ -192,7 +211,7 @@ ceilingGrain (Months n) (UTCTime d _) = UTCTime (addDays (-1) $ fromGregorian y'
     (y, m, _) = toGregorian (addDays 1 d)
     m' = (m + n - 1) `div` n * n
     (y', m'') = fromIntegral <$> if m' == 12 then (y + 1, 1) else (y, m' + 1)
-ceilingGrain (Days _) (UTCTime d t) = if t == (secondsToDiffTime 0) then UTCTime d (secondsToDiffTime 0) else UTCTime (addDays 1 d) (secondsToDiffTime 0)
+ceilingGrain (Days _) (UTCTime d t) = if t == secondsToDiffTime 0 then UTCTime d (secondsToDiffTime 0) else UTCTime (addDays 1 d) (secondsToDiffTime 0)
 ceilingGrain (Hours h) u@(UTCTime _ t) = addUTCTime x u
   where
     s = fromDiffTime t
@@ -213,7 +232,7 @@ data PosDiscontinuous = PosInnerOnly | PosIncludeBoundaries
 --
 -- The assumption with getSensibleTimeGrid is that there is a list of discountinuous UTCTimes rather than a continuous range.  Output is a list of index points for the original [UTCTime] and label tuples, and a list of unused list elements.
 --
--- >>> placedTimeLabelDiscontinuous PosIncludeBoundaries (Just "%d %b") 2 [UTCTime (fromGregorian 2017 12 6) 0, UTCTime (fromGregorian 2017 12 29) 0, UTCTime (fromGregorian 2018 1 31) 0, UTCTime (fromGregorian 2018 3 3) 0]
+-- >>> placedTimeLabelDiscontinuous PosIncludeBoundaries (Just "%d %b") 2 [UTCTime (fromGregorian 2017 12 6) (toDiffTime 0), UTCTime (fromGregorian 2017 12 29) (toDiffTime 0), UTCTime (fromGregorian 2018 1 31) (toDiffTime 0), UTCTime (fromGregorian 2018 3 3) (toDiffTime 0)]
 -- ([(0,"06 Dec"),(1,"31 Dec"),(2,"28 Feb"),(3,"03 Mar")],[])
 placedTimeLabelDiscontinuous :: PosDiscontinuous -> Maybe Text -> Int -> [UTCTime] -> ([(Int, Text)], [UTCTime])
 placedTimeLabelDiscontinuous posd format n ts = (zip (fst <$> inds') labels, rem')
@@ -232,7 +251,6 @@ placedTimeLabelDiscontinuous posd format n ts = (zip (fst <$> inds') labels, rem
       | p > a = (p : ps, xs, n + 1)
       | otherwise = step (ps, (n - 1, p) : xs, n) a
     (rem', inds) = done $ foldl' step begin ts
-
     inds' = laterTimes inds
     fmt = case format of
       Just f -> unpack f
@@ -254,13 +272,13 @@ autoFormat (Seconds _) = "%R%Q"
 laterTimes :: [(Int, a)] -> [(Int, a)]
 laterTimes [] = []
 laterTimes [x] = [x]
-laterTimes (x : xs) = (\(x0, x1) -> reverse $ x0 : x1) $ foldl' step (x,[]) xs
+laterTimes (x : xs) = (\(x0, x1) -> reverse $ x0 : x1) $ foldl' step (x, []) xs
   where
     step ((n, a), rs) (na, aa) = if na == n then ((na, aa), rs) else ((na, aa), (n, a) : rs)
 
 -- | A sensible time grid between two dates, projected onto (0,1) with no attempt to get finnicky.
 --
--- >>> placedTimeLabelContinuous PosIncludeBoundaries (Just "%d %b") 2 (UTCTime (fromGregorian 2017 12 6) 0, UTCTime (fromGregorian 2017 12 29) 0)
+-- >>> placedTimeLabelContinuous PosIncludeBoundaries (Just "%d %b") 2 (UTCTime (fromGregorian 2017 12 6) (toDiffTime 0), UTCTime (fromGregorian 2017 12 29) (toDiffTime 0))
 -- [(0.0,"06 Dec"),(0.4347826086956521,"16 Dec"),(0.8695652173913042,"26 Dec"),(0.9999999999999999,"29 Dec")]
 placedTimeLabelContinuous :: PosDiscontinuous -> Maybe Text -> Int -> (UTCTime, UTCTime) -> [(Double, Text)]
 placedTimeLabelContinuous posd format n (l, u) = zip tpsd labels
@@ -280,16 +298,16 @@ placedTimeLabelContinuous posd format n (l, u) = zip tpsd labels
 
 -- | compute a sensible TimeGrain and list of UTCTimes
 --
--- >>> sensibleTimeGrid InnerPos 2 (UTCTime (fromGregorian 2016 12 31) 0, UTCTime (fromGregorian 2017 12 31) 0)
+-- >>> sensibleTimeGrid InnerPos 2 (UTCTime (fromGregorian 2016 12 31) (toDiffTime 0), UTCTime (fromGregorian 2017 12 31) (toDiffTime 0))
 -- (Months 6,[2016-12-31 00:00:00 UTC,2017-06-30 00:00:00 UTC,2017-12-31 00:00:00 UTC])
 --
--- >>> sensibleTimeGrid InnerPos 2 (UTCTime (fromGregorian 2017 1 1) 0, UTCTime (fromGregorian 2017 12 30) 0)
+-- >>> sensibleTimeGrid InnerPos 2 (UTCTime (fromGregorian 2017 1 1) (toDiffTime 0), UTCTime (fromGregorian 2017 12 30) (toDiffTime 0))
 -- (Months 6,[2017-06-30 00:00:00 UTC])
 --
--- >>>  sensibleTimeGrid UpperPos 2 (UTCTime (fromGregorian 2017 1 1) 0, UTCTime (fromGregorian 2017 12 30) 0)
+-- >>>  sensibleTimeGrid UpperPos 2 (UTCTime (fromGregorian 2017 1 1) (toDiffTime 0), UTCTime (fromGregorian 2017 12 30) (toDiffTime 0))
 -- (Months 6,[2017-06-30 00:00:00 UTC,2017-12-31 00:00:00 UTC])
 --
--- >>>sensibleTimeGrid LowerPos 2 (UTCTime (fromGregorian 2017 1 1) 0, UTCTime (fromGregorian 2017 12 30) 0)
+-- >>>sensibleTimeGrid LowerPos 2 (UTCTime (fromGregorian 2017 1 1) (toDiffTime 0), UTCTime (fromGregorian 2017 12 30) (toDiffTime 0))
 -- (Months 6,[2016-12-31 00:00:00 UTC,2017-06-30 00:00:00 UTC])
 sensibleTimeGrid :: Pos -> Int -> (UTCTime, UTCTime) -> (TimeGrain, [UTCTime])
 sensibleTimeGrid p n (l, u) = (grain, ts)

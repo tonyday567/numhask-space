@@ -1,6 +1,9 @@
-{-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_HADDOCK hide #-}
 
@@ -14,6 +17,8 @@ module NumHask.Space.Types
     project,
     Pos (..),
     space1,
+    randomS,
+    randomSs,
     memberOf,
     contains,
     disjoint,
@@ -25,13 +30,18 @@ module NumHask.Space.Types
     widenEps,
     scale,
     move,
+    Transform (..),
+    inverseTransform,
+    Affinity (..),
+    (|.),
+    rotate,
   )
 where
 
-import NumHask.Prelude
+import NumHask.Prelude hiding (rotate)
 import qualified Prelude as P
 
--- | Space is a continuous range of numbers that contains elements and has an upper and lower value.
+-- | A 'Space' is a continuous set of numbers. Continuous here means that the set has an upper and lower bound, and an element that is between these two bounds is a member of the 'Space'.
 --
 -- > a `union` b == b `union` a
 -- > a `intersection` b == b `intersection` a
@@ -74,8 +84,8 @@ class Space s where
   --
   -- > lower a \/ upper a == lower a
   -- > lower a /\ upper a == upper a
-  norm :: s -> s
-  norm s = lower s ... upper s
+  normalise :: s -> s
+  normalise s = lower s ... upper s
 
   -- | create a normalised space from two elements
   infix 3 ...
@@ -151,6 +161,21 @@ newtype Intersection a = Intersection {getIntersection :: a}
 instance (Space a) => Semigroup (Intersection a) where
   (<>) (Intersection a) (Intersection b) = Intersection (a `union` b)
 
+-- | supply a random element within a 'Space'
+randomS :: (Space s, RandomGen g, Random (Element s)) => s -> g -> (Element s, g)
+randomS s = randomR (lower s, upper s)
+
+-- | supply an (infinite) list of random elements within a 'Space'
+--
+-- >>> let g = mkStdGen 42
+-- >>> take 3 $ randomSs (one :: Range Double) g
+-- [0.43085240252163404,-6.472345419562497e-2,0.3854692674681801]
+--
+-- >>> take 3 $ randomSs (Rect 0 10 0 10 :: Rect Word8) g
+-- [Point 8 0,Point 6 4,Point 5 3]
+randomSs :: (Space s, RandomGen g, Random (Element s)) => s -> g -> [Element s]
+randomSs s = randomRs (lower s, upper s)
+
 -- | a space that can be divided neatly
 --
 -- > space1 (grid OuterPos s g) == s
@@ -182,7 +207,7 @@ data Pos
 mid :: (Space s, Field (Element s)) => s -> Element s
 mid s = (lower s + upper s) / (one + one)
 
--- | project a data point from one space to another, preserving relative position
+-- | project an element from one space to another, preserving relative position.
 --
 -- > project o n (lower o) = lower n
 -- > project o n (upper o) = upper n
@@ -227,7 +252,7 @@ widen a s = (lower s - a) >.< (upper s + a)
 widenEps ::
   ( Space s,
     FromRational (Element s),
-    Field (Element s)
+    Ring (Element s)
   ) =>
   Element s ->
   s ->
@@ -241,3 +266,75 @@ scale e s = (e * lower s) ... (e * upper s)
 -- | Move a Space. (scalar addition)
 move :: (Additive (Element s), Space s) => Element s -> s -> s
 move e s = (e + lower s) ... (e + upper s)
+
+-- | linear transform + translate of a point-like number
+--
+-- > (x, y) -> (ax + by + c, dx + ey + d)
+--
+-- or
+--
+-- \[
+-- \begin{pmatrix}
+-- a & b & c\\
+-- d & e & f\\
+-- 0 & 0 & 1
+-- \end{pmatrix}
+-- \begin{pmatrix}
+-- x\\
+-- y\\
+-- 1
+-- \end{pmatrix}
+-- \]
+data Transform a = Transform
+  { ta :: !a,
+    tb :: !a,
+    tc :: !a,
+    td :: !a,
+    te :: !a,
+    tf :: !a
+  }
+  deriving (Eq, Show, Functor, Foldable, Traversable)
+
+-- | Calculate the inverse of a transformation.
+inverseTransform :: (Eq a, Field a) => Transform a -> Maybe (Transform a)
+inverseTransform (Transform a b c d e f) =
+  let det = a * e - b * d
+   in bool
+        ( Just
+            ( Transform
+                (a / det)
+                (d / det)
+                (- (a * c + d * f) / det)
+                (b / det)
+                (e / det)
+                (- (b * c + e * f) / det)
+            )
+        )
+        Nothing
+        (det == zero)
+
+-- | An 'Affinity' is something that can be subjected to an affine transformation in 2-dimensional space, where affine means a linear matrix operation or a translation (+).
+--
+-- https://en.wikipedia.org/wiki/Affine_transformation
+class Affinity a b | a -> b where
+  transform :: Transform b -> a -> a
+
+infix 3 |.
+
+-- | Apply a 'Transform' to an 'Affinity'
+(|.) :: (Affinity a b) => Transform b -> a -> a
+(|.) = transform
+
+instance (Multiplicative a, Additive a) => Affinity (Transform a) a where
+  transform (Transform a' b' c' d' e' f') (Transform a b c d e f) =
+    Transform
+      (a * a' + b' * d)
+      (a' * b + b' * e)
+      (a' * c + b' * f + c')
+      (d' * a + e' * d)
+      (d' * b + e' * e)
+      (d' * c + e' * f + f')
+
+-- | Rotate an 'Affinity'
+rotate :: (TrigField a) => a -> Transform a
+rotate a = Transform (cos a) (- sin a) zero (sin a) (cos a) zero
