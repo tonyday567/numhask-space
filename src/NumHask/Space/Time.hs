@@ -3,6 +3,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NegativeLiterals #-}
 {-# LANGUAGE RebindableSyntax #-}
+{-# LANGUAGE StrictData #-}
 {-# OPTIONS_GHC -Wall #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 {-# OPTIONS_GHC -fno-warn-type-defaults #-}
@@ -24,11 +25,13 @@ module NumHask.Space.Time
   )
 where
 
+import Data.Containers.ListUtils (nubOrd)
 import Data.Fixed (Fixed (MkFixed))
-import Data.List (nub)
+import qualified Data.Sequence as Seq
 import Data.String (String)
 import Data.Time
 import NumHask.Prelude
+import NumHask.Space.Range
 import NumHask.Space.Types
 
 -- $setup
@@ -70,7 +73,9 @@ grainSecs (Seconds n) = n
 
 -- | convenience conversion to Double
 fromNominalDiffTime :: NominalDiffTime -> Double
-fromNominalDiffTime t = let (MkFixed i) = nominalDiffTimeToSeconds t in fromInteger i * 1e-12
+fromNominalDiffTime t = fromInteger i * 1e-12
+  where
+    (MkFixed i) = nominalDiffTimeToSeconds t
 
 -- | convenience conversion from Double
 toNominalDiffTime :: Double -> NominalDiffTime
@@ -87,14 +92,13 @@ toNominalDiffTime x =
 -- >>> fromDiffTime $ toDiffTime 1
 -- 1.0
 fromDiffTime :: DiffTime -> Double
-fromDiffTime =
-  (/ 1e12) . fromIntegral . fromEnum
+fromDiffTime = (* 1e-12) . fromInteger . diffTimeToPicoseconds
 
 -- | Convert from seconds (as a Double) to 'DiffTime'
 -- >>> toDiffTime 1
 -- 1s
 toDiffTime :: Double -> DiffTime
-toDiffTime d = toEnum . fromEnum $ d * 1e12
+toDiffTime = picosecondsToDiffTime . floor . (* 1e12)
 
 -- | add a TimeGrain to a UTCTime
 --
@@ -237,19 +241,18 @@ data PosDiscontinuous = PosInnerOnly | PosIncludeBoundaries
 placedTimeLabelDiscontinuous :: PosDiscontinuous -> Maybe Text -> Int -> [UTCTime] -> ([(Int, Text)], [UTCTime])
 placedTimeLabelDiscontinuous posd format n ts = (zip (fst <$> inds') labels, rem')
   where
-    l = minimum ts
-    u = maximum ts
-    (grain, tps) = sensibleTimeGrid InnerPos n (l, u)
+    r@(Range l u) = space1 ts
+    (grain, tps) = sensibleTimeGrid InnerPos n r
     tps' = case posd of
       PosInnerOnly -> tps
       PosIncludeBoundaries -> [l] <> tps <> [u]
-    begin = (tps', [], 0)
-    done (p, x, _) = (p, reverse x)
+    begin = (tps', Seq.empty, zero::Int)
+    done (p, x, _) = (p, toList x)
     step ([], xs, n) _ = ([], xs, n)
     step (p : ps, xs, n) a
-      | p == a = step (ps, (n, p) : xs, n) a
+      | p == a = step (ps, xs Seq.:|> (n, p), n) a
       | p > a = (p : ps, xs, n + 1)
-      | otherwise = step (ps, (n - 1, p) : xs, n) a
+      | otherwise = step (ps, xs Seq.:|> (n - 1, p), n) a
     (rem', inds) = done $ foldl' step begin ts
     inds' = laterTimes inds
     fmt = case format of
@@ -272,60 +275,71 @@ autoFormat (Seconds _) = "%R%Q"
 laterTimes :: [(Int, a)] -> [(Int, a)]
 laterTimes [] = []
 laterTimes [x] = [x]
-laterTimes (x : xs) = (\(x0, x1) -> reverse $ x0 : x1) $ foldl' step (x, []) xs
+laterTimes (x : xs) =
+  (\(x, xs) -> toList $ xs Seq.:|> x) $
+  foldl' step (x, Seq.empty) xs
   where
-    step ((n, a), rs) (na, aa) = if na == n then ((na, aa), rs) else ((na, aa), (n, a) : rs)
+    step ((n, a), rs) (na, aa) =
+      bool ((na, aa), rs Seq.:|> (n, a)) ((na, aa), rs) (na == n)
 
 -- | A sensible time grid between two dates, projected onto (0,1) with no attempt to get finnicky.
 --
--- >>> placedTimeLabelContinuous PosIncludeBoundaries (Just "%d %b") 2 (UTCTime (fromGregorian 2017 12 6) (toDiffTime 0), UTCTime (fromGregorian 2017 12 29) (toDiffTime 0))
+-- >>> placedTimeLabelContinuous PosIncludeBoundaries (Just "%d %b") 2 (Range (UTCTime (fromGregorian 2017 12 6) (toDiffTime 0)) (UTCTime (fromGregorian 2017 12 29) (toDiffTime 0)))
 -- [(0.0,"06 Dec"),(0.4347826086956521,"16 Dec"),(0.8695652173913042,"26 Dec"),(0.9999999999999999,"29 Dec")]
-placedTimeLabelContinuous :: PosDiscontinuous -> Maybe Text -> Int -> (UTCTime, UTCTime) -> [(Double, Text)]
-placedTimeLabelContinuous posd format n (l, u) = zip tpsd labels
+placedTimeLabelContinuous :: PosDiscontinuous -> Maybe Text -> Int -> Range UTCTime -> [(Double, Text)]
+placedTimeLabelContinuous posd format n r@(Range l u) = zip tpsd labels
   where
-    (grain, tps) = sensibleTimeGrid InnerPos n (l, u)
+    (grain, tps) = sensibleTimeGrid InnerPos n r
     tps' = case posd of
       PosInnerOnly -> tps
-      PosIncludeBoundaries -> nub $ [l] <> tps <> [u]
+      PosIncludeBoundaries -> nubOrd $ [l] <> tps <> [u]
     fmt = case format of
       Just f -> unpack f
       Nothing -> autoFormat grain
     labels = pack . formatTime defaultTimeLocale fmt <$> tps'
-    l' = minimum tps'
-    u' = maximum tps'
+    (Range l' u') = space1 tps'
     r' = fromNominalDiffTime $ diffUTCTime u' l'
     tpsd = (/ r') . fromNominalDiffTime . flip diffUTCTime l <$> tps'
 
 -- | compute a sensible TimeGrain and list of UTCTimes
 --
--- >>> sensibleTimeGrid InnerPos 2 (UTCTime (fromGregorian 2016 12 31) (toDiffTime 0), UTCTime (fromGregorian 2017 12 31) (toDiffTime 0))
+-- >>> sensibleTimeGrid InnerPos 2 (Range (UTCTime (fromGregorian 2016 12 31) (toDiffTime 0)) (UTCTime (fromGregorian 2017 12 31) (toDiffTime 0)))
 -- (Months 6,[2016-12-31 00:00:00 UTC,2017-06-30 00:00:00 UTC,2017-12-31 00:00:00 UTC])
 --
--- >>> sensibleTimeGrid InnerPos 2 (UTCTime (fromGregorian 2017 1 1) (toDiffTime 0), UTCTime (fromGregorian 2017 12 30) (toDiffTime 0))
+-- >>> sensibleTimeGrid InnerPos 2 (Range (UTCTime (fromGregorian 2017 1 1) (toDiffTime 0)) (UTCTime (fromGregorian 2017 12 30) (toDiffTime 0)))
 -- (Months 6,[2017-06-30 00:00:00 UTC])
 --
--- >>>  sensibleTimeGrid UpperPos 2 (UTCTime (fromGregorian 2017 1 1) (toDiffTime 0), UTCTime (fromGregorian 2017 12 30) (toDiffTime 0))
+-- >>>  sensibleTimeGrid UpperPos 2 (Range (UTCTime (fromGregorian 2017 1 1) (toDiffTime 0)) (UTCTime (fromGregorian 2017 12 30) (toDiffTime 0)))
 -- (Months 6,[2017-06-30 00:00:00 UTC,2017-12-31 00:00:00 UTC])
 --
--- >>>sensibleTimeGrid LowerPos 2 (UTCTime (fromGregorian 2017 1 1) (toDiffTime 0), UTCTime (fromGregorian 2017 12 30) (toDiffTime 0))
+-- >>>sensibleTimeGrid LowerPos 2 (Range (UTCTime (fromGregorian 2017 1 1) (toDiffTime 0)) (UTCTime (fromGregorian 2017 12 30) (toDiffTime 0)))
 -- (Months 6,[2016-12-31 00:00:00 UTC,2017-06-30 00:00:00 UTC])
-sensibleTimeGrid :: Pos -> Int -> (UTCTime, UTCTime) -> (TimeGrain, [UTCTime])
-sensibleTimeGrid p n (l, u) = (grain, ts)
+sensibleTimeGrid :: Pos -> Int -> Range UTCTime -> (TimeGrain, [UTCTime])
+sensibleTimeGrid p n (Range l u) = (grain, ts)
   where
     span' = u `diffUTCTime` l
     grain = stepSensibleTime p span' n
     first' = floorGrain grain l
     last' = ceilingGrain grain u
-    n' = round $ fromNominalDiffTime (diffUTCTime last' first') / grainSecs grain :: Integer
+    n' =
+      round $
+      fromNominalDiffTime (diffUTCTime last' first') /
+      grainSecs grain :: Integer
     posns = case p of
       OuterPos -> take (fromIntegral $ n' + 1)
-      InnerPos -> drop (if first' == l then 0 else 1) . take (fromIntegral $ n' + if last' == u then 1 else 0)
+      InnerPos ->
+        drop (bool one zero (first' == l)) .
+        take (fromIntegral $ n' + bool zero one (last' == u))
       UpperPos -> drop 1 . take (fromIntegral $ n' + 1)
       LowerPos -> take (fromIntegral n')
       MidPos -> take (fromIntegral n')
     ts = case p of
-      MidPos -> take (fromIntegral n') $ addHalfGrain grain . (\x -> addGrain grain x first') <$> [0 ..]
-      _ -> posns $ (\x -> addGrain grain x first') <$> [0 ..]
+      MidPos ->
+        take (fromIntegral n') $
+        addHalfGrain grain .
+        (\x -> addGrain grain x first') <$>
+        [0 ..]
+      _notMid -> posns $ (\x -> addGrain grain x first') <$> [0 ..]
 
 -- come up with a sensible step for a grid over a Field
 stepSensible ::
