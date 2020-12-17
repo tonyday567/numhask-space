@@ -49,26 +49,27 @@ data DealOvers = IgnoreOvers | IncludeOvers Double
 fill :: (Foldable f) => [Double] -> f Double -> Histogram
 fill cs xs =
   Histogram
-  (V.fromList cs)
-  (foldl' (\x a -> Map.insertWith (+) (cutI (V.fromList cs) a) 1 x) Map.empty xs)
+    (V.fromList cs)
+    (foldl' (\x a -> Map.insertWith (+) (cutI (V.fromList cs) a) 1 x) Map.empty xs)
 
 -- | find the index of the bucket the value is contained in.
---
 cutI :: (Ord a) => V.Vector a -> a -> Int
 cutI cs a = go (Range zero (V.length cs))
   where
     go (Range l u) =
-      let k = (u + l) `div` 2 in
-      case compare a (cs V.! k) of
-        EQ -> k+1
-        LT -> bool (go (Range l k)) k (l==k)
-        GT -> bool
-          (case compare a (cs V.! (k+one)) of
-              EQ -> k+2
-              LT -> k+1
-              GT -> go (Range k u))
-          (k+1)
-          (k>=u-one)
+      let k = (u + l) `div` 2
+       in case compare a (cs V.! k) of
+            EQ -> k + 1
+            LT -> bool (go (Range l k)) k (l == k)
+            GT ->
+              bool
+                ( case compare a (cs V.! (k + one)) of
+                    EQ -> k + 2
+                    LT -> k + 1
+                    GT -> go (Range k u)
+                )
+                (k + 1)
+                (k >= u - one)
 
 -- | Make a histogram using n equally spaced cuts over the entire range of the data
 --
@@ -89,7 +90,7 @@ makeRects o (Histogram cs counts) = V.toList $ V.zipWith3 (\x z w' -> Rect x z z
     w =
       V.zipWith
         (/)
-        ((\x' -> Map.findWithDefault 0 x' counts) <$> V.enumFromN f (l-f+one))
+        ((\x' -> Map.findWithDefault 0 x' counts) <$> V.enumFromN f (l - f + one))
         (V.zipWith (-) z x)
     f = case o of
       IgnoreOvers -> one
@@ -101,8 +102,9 @@ makeRects o (Histogram cs counts) = V.toList $ V.zipWith3 (\x z w' -> Rect x z z
     x = case o of
       IgnoreOvers -> cs
       IncludeOvers outw ->
-        V.singleton (V.head cs - outw) <>
-        cs <> V.singleton (V.last cs + outw)
+        V.singleton (V.head cs - outw)
+          <> cs
+          <> V.singleton (V.last cs + outw)
     z = V.drop one x
 
 -- | approx regular n-quantiles
@@ -142,7 +144,6 @@ average xs = sum xs / fromIntegral (length xs)
 --
 -- >>> quantiles 5 [1..1000]
 -- [1.0,200.5,400.5,600.5000000000001,800.5,1000.0]
---
 quantiles :: (Foldable f) => Int -> f Double -> [Double]
 quantiles n xs =
   ( \x ->
@@ -155,6 +156,5 @@ quantiles n xs =
 --
 -- >>> quantile 0.1 [1..1000]
 -- 100.5
---
 quantile :: (Foldable f) => Double -> f Double -> Double
 quantile p xs = fromMaybe 0 $ TD.quantile p (TD.tdigest xs :: TD.TDigest 25)

@@ -287,4 +287,3 @@ lineIntersect (Line p1 p2) (Line p3 p4)
     det = crossP d1 d2
     a = crossP p1 p2
     b = crossP p3 p4
-

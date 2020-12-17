@@ -246,7 +246,7 @@ placedTimeLabelDiscontinuous posd format n ts = (zip (fst <$> inds') labels, rem
     tps' = case posd of
       PosInnerOnly -> tps
       PosIncludeBoundaries -> [l] <> tps <> [u]
-    begin = (tps', Seq.empty, zero::Int)
+    begin = (tps', Seq.empty, zero :: Int)
     done (p, x, _) = (p, toList x)
     step ([], xs, n) _ = ([], xs, n)
     step (p : ps, xs, n) a
@@ -277,7 +277,7 @@ laterTimes [] = []
 laterTimes [x] = [x]
 laterTimes (x : xs) =
   (\(x, xs) -> toList $ xs Seq.:|> x) $
-  foldl' step (x, Seq.empty) xs
+    foldl' step (x, Seq.empty) xs
   where
     step ((n, a), rs) (na, aa) =
       bool ((na, aa), rs Seq.:|> (n, a)) ((na, aa), rs) (na == n)
@@ -323,22 +323,23 @@ sensibleTimeGrid p n (Range l u) = (grain, ts)
     last' = ceilingGrain grain u
     n' =
       round $
-      fromNominalDiffTime (diffUTCTime last' first') /
-      grainSecs grain :: Integer
+        fromNominalDiffTime (diffUTCTime last' first')
+          / grainSecs grain ::
+        Integer
     posns = case p of
       OuterPos -> take (fromIntegral $ n' + 1)
       InnerPos ->
-        drop (bool one zero (first' == l)) .
-        take (fromIntegral $ n' + bool zero one (last' == u))
+        drop (bool one zero (first' == l))
+          . take (fromIntegral $ n' + bool zero one (last' == u))
       UpperPos -> drop 1 . take (fromIntegral $ n' + 1)
       LowerPos -> take (fromIntegral n')
       MidPos -> take (fromIntegral n')
     ts = case p of
       MidPos ->
         take (fromIntegral n') $
-        addHalfGrain grain .
-        (\x -> addGrain grain x first') <$>
-        [0 ..]
+          addHalfGrain grain
+            . (\x -> addGrain grain x first')
+            <$> [0 ..]
       _notMid -> posns $ (\x -> addGrain grain x first') <$> [0 ..]
 
 -- come up with a sensible step for a grid over a Field
