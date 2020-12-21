@@ -16,7 +16,6 @@
 --
 -- ~ Technicians by Jean Kenward”
 -- ~ John Foster
---
 module NumHask.Space
   ( -- * Usage
     -- $setup
