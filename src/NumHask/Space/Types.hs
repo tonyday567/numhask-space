@@ -335,6 +335,6 @@ instance (Multiplicative a, Additive a) => Affinity (Transform a) a where
       (d' * b + e' * e)
       (d' * c + e' * f + f')
 
--- | Rotate an 'Affinity'
+-- | Rotate an 'Affinity' (counter-clockwise)
 rotate :: (TrigField a) => a -> Transform a
 rotate a = Transform (cos a) (- sin a) zero (sin a) (cos a) zero

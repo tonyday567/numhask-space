@@ -3,8 +3,19 @@
 {-# OPTIONS_GHC -Wall #-}
 {-# OPTIONS_GHC -fno-warn-type-defaults #-}
 
--- | Mathematics does not rigorously define a [space](https://en.wikipedia.org/wiki/Space_(mathematics\)), leaving library devs free to push boundaries on what a space is.
--- 
+-- | Mathematics does not rigorously define a [space](https://en.wikipedia.org/wiki/Space_(mathematics\)), leaving library devs free to explore.
+--
+-- “But who can quantify
+--  the algebra of space,
+--  or weigh those worlds that swim
+--  each in its place?
+--  Who can outdo the dark?
+--  And what computer knows
+--  how beauty comes to birth -
+--  shell star and rose?
+--
+-- ~ Technicians by Jean Kenward”
+-- ~ John Foster
 module NumHask.Space
   ( -- * Usage
     -- $setup

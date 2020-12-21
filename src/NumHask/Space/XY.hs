@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RebindableSyntax #-}
+{-# LANGUAGE StrictData #-}
 
 -- | Unification of 'Point' and 'Rect'.
 module NumHask.Space.XY

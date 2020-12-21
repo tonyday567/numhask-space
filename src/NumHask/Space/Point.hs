@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RebindableSyntax #-}
+{-# LANGUAGE StrictData #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wall #-}
 
@@ -173,7 +174,7 @@ instance
   norm (Point x y) = sqrt (x * x + y * y)
   basis p = p /. norm p
 
--- | angle formed by a vector from trhe origin to a Point and the x-axis (Point 1 0). Note that an angle between two points p1 & p2 is thus angle p2 - angle p1
+-- | angle formed by a vector from the origin to a Point and the x-axis (Point 1 0). Note that an angle between two points p1 & p2 is thus angle p2 - angle p1
 --
 -- > \u@(Point ux uy) v@(Point vx vy) -> angle v - angle u == sign (ux*vy-uy*vx) * acos (dotP u v / (norm u * norm v))
 instance (TrigField a) => Direction (Point a) a where
@@ -286,4 +287,3 @@ lineIntersect (Line p1 p2) (Line p3 p4)
     det = crossP d1 d2
     a = crossP p1 p2
     b = crossP p3 p4
-
