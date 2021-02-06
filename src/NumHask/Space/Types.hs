@@ -14,6 +14,7 @@ module NumHask.Space.Types
     Intersection (..),
     FieldSpace (..),
     mid,
+    interpolate
     project,
     Pos (..),
     space1,
@@ -206,6 +207,13 @@ data Pos
 -- | middle element of the space
 mid :: (Space s, Field (Element s)) => s -> Element s
 mid s = (lower s + upper s) / (one + one)
+
+-- | interpolate a space
+--
+-- > interpolate s x == project s (zero ... one) x
+--
+interpolate :: (Space s, Ring (Element s)) => s -> Element s -> Element s
+interpolate s x = lower s + x * width s
 
 -- | project an element from one space to another, preserving relative position.
 --

@@ -168,11 +168,11 @@ instance (Ord a) => MeetSemiLattice (Point a) where
   (/\) (Point x y) (Point x' y') = Point (min x x') (min y y')
 
 instance
-  (ExpField a) =>
+  (ExpField a, Eq a) =>
   Norm (Point a) a
   where
   norm (Point x y) = sqrt (x * x + y * y)
-  basis p = p /. norm p
+  basis p = let m = norm p in bool (p /. m) zero (m==zero)
 
 -- | angle formed by a vector from the origin to a Point and the x-axis (Point 1 0). Note that an angle between two points p1 & p2 is thus angle p2 - angle p1
 --
@@ -248,7 +248,7 @@ instance (Multiplicative a, Additive a) => Affinity (Line a) a where
   transform t (Line s e) = Line (transform t s) (transform t e)
 
 -- | Return the parameters (a, b, c) for the line equation @a*x + b*y + c = 0@.
-lineSolve :: ExpField a => Line a -> (a, a, a)
+lineSolve :: (ExpField a, Eq a) => Line a -> (a, a, a)
 lineSolve (Line p1 p2) = (- my, mx, c)
   where
     m@(Point mx my) = basis (p2 - p1)
