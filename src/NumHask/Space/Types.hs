@@ -14,7 +14,7 @@ module NumHask.Space.Types
     Intersection (..),
     FieldSpace (..),
     mid,
-    interpolate
+    interpolate,
     project,
     Pos (..),
     space1,

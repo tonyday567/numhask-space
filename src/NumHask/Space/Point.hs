@@ -176,7 +176,6 @@ instance
 
 -- | angle formed by a vector from the origin to a Point and the x-axis (Point 1 0). Note that an angle between two points p1 & p2 is thus angle p2 - angle p1
 --
--- > \u@(Point ux uy) v@(Point vx vy) -> angle v - angle u == sign (ux*vy-uy*vx) * acos (dotP u v / (norm u * norm v))
 instance (TrigField a) => Direction (Point a) a where
   angle (Point x y) = atan2 y x
   ray x = Point (cos x) (sin x)

@@ -10,7 +10,6 @@
 -- | A Space containing numerical elements
 module NumHask.Space.Range
   ( Range (..),
-    interpolate,
     gridSensible,
   )
 where
@@ -169,9 +168,6 @@ instance (Ord a, Field a) => Divisive (Range a) where
 instance (Field a, Subtractive a, Eq a, Ord a) => Signed (Range a) where
   sign (Range l u) = bool (negate one) one (u >= l)
   abs (Range l u) = bool (u ... l) (l ... u) (u >= l)
-
-interpolate :: (Ring a) => a -> Range a -> a
-interpolate x (Range l u) = l + x * (u-l)
 
 stepSensible :: Pos -> Double -> Integer -> Double
 stepSensible tp span' n =
