@@ -39,8 +39,9 @@ module NumHask.Space.Types
   )
 where
 
-import NumHask.Prelude hiding (rotate)
+import NumHask.Prelude
 import qualified Prelude as P
+import System.Random
 
 -- | A 'Space' is a continuous set of numbers. Continuous here means that the set has an upper and lower bound, and an element that is between these two bounds is a member of the 'Space'.
 --

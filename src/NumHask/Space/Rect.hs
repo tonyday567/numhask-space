@@ -33,11 +33,10 @@ module NumHask.Space.Rect
 where
 
 import Data.Distributive as D
-import Data.Foldable (Foldable (foldr1))
 import Data.Functor.Compose
 import Data.Functor.Rep
-import GHC.Show (show)
-import NumHask.Prelude hiding (Distributive, rotate, show)
+import NumHask.Prelude hiding (Distributive)
+import Data.List.NonEmpty
 import NumHask.Space.Point
 import NumHask.Space.Range
 import NumHask.Space.Types

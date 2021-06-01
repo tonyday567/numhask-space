@@ -9,7 +9,6 @@ Usage
 ===
 
 ``` haskell
-{-# LANGUAGE NegativeLiterals #-}
 {-# LANGUAGE RebindableSyntax #-}
 import NumHask.Prelude
 import NumHask.Space

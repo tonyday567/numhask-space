@@ -31,11 +31,12 @@ where
 import Data.Distributive
 import Data.Functor.Classes
 import Data.Functor.Rep
-import GHC.Show (show)
-import NumHask.Prelude hiding (Distributive, rotate, show)
+import NumHask.Prelude hiding (Distributive)
 import qualified NumHask.Prelude as P
 import NumHask.Space.Range
 import NumHask.Space.Types
+import System.Random
+import System.Random.Stateful
 
 -- $setup
 -- >>> :set -XNoImplicitPrelude

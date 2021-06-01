@@ -1,11 +1,10 @@
 {-# LANGUAGE RebindableSyntax #-}
-{-# LANGUAGE NegativeLiterals #-}
 {-# OPTIONS_GHC -Wall #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 
 module Main where
 
-import NumHask.Prelude
+import Prelude
 import Test.DocTest
 
 main :: IO ()

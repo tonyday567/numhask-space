@@ -28,11 +28,11 @@ where
 import Data.Containers.ListUtils (nubOrd)
 import Data.Fixed (Fixed (MkFixed))
 import qualified Data.Sequence as Seq
-import Data.String (String)
 import Data.Time
 import NumHask.Prelude
 import NumHask.Space.Range
 import NumHask.Space.Types
+import Data.Text (Text, unpack, pack)
 
 -- $setup
 --
