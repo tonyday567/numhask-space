@@ -29,6 +29,10 @@ import NumHask.Space.Range
 import NumHask.Space.Rect
 import NumHask.Space.Types
 
+-- $setup
+-- >>> import NumHask.Prelude
+-- >>> import NumHask.Space
+
 -- | This Histogram is a list of contiguous boundaries (a boundary being the lower edge of one bucket and the upper edge of another), and a value (usually a count) for each bucket, represented here as a map
 --
 -- Overs and Unders are contained in key = 0 and key = length cuts

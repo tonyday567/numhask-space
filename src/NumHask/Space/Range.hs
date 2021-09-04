@@ -28,6 +28,8 @@ import NumHask.Space.Types as S
 --
 -- >>> :set -XFlexibleContexts
 -- >>> :set -XGADTs
+-- >>> import NumHask.Prelude
+-- >>> import NumHask.Space
 
 -- | A continuous range over type a
 --
@@ -160,7 +162,7 @@ instance (Field a, Eq a, Ord a) => Multiplicative (Range a) where
   one = Range (negate one / (one + one)) (one / (one + one))
 
 instance (Ord a, Field a) => Divisive (Range a) where
-  recip a = bool (Range (- m - one / (two * r)) (- m + one / (two * r))) zero (r == zero)
+  recip a = bool (Range (-m - one / (two * r)) (-m + one / (two * r))) zero (r == zero)
     where
       m = mid a
       r = width a

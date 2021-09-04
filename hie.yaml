@@ -1,4 +1,4 @@
 cradle:
   cabal:
     - path: "./src/"
-      component: "numhask-space:lib"
+      component: "numhask-space:lib:numhask-space"

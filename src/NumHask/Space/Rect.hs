@@ -35,8 +35,8 @@ where
 import Data.Distributive as D
 import Data.Functor.Compose
 import Data.Functor.Rep
-import NumHask.Prelude hiding (Distributive)
 import Data.List.NonEmpty
+import NumHask.Prelude hiding (Distributive)
 import NumHask.Space.Point
 import NumHask.Space.Range
 import NumHask.Space.Types
@@ -44,6 +44,8 @@ import NumHask.Space.Types
 -- $setup
 --
 -- >>> :set -XFlexibleContexts
+-- >>> import NumHask.Prelude
+-- >>> import NumHask.Space
 
 -- | a rectangular space often representing a finite 2-dimensional or XY plane.
 --

@@ -15,12 +15,16 @@ module NumHask.Space.XY
   )
 where
 
+import qualified Data.List.NonEmpty as NonEmpty
 import GHC.Show (show)
 import NumHask.Prelude hiding (show)
 import NumHask.Space.Point
 import NumHask.Space.Rect
 import NumHask.Space.Types
-import qualified Data.List.NonEmpty as NonEmpty
+
+-- $setup
+-- >>> import NumHask.Prelude
+-- >>> import NumHask.Space
 
 -- | unification of a point and rect on the plane
 data XY a
