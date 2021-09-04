@@ -7,3 +7,5 @@ TAGS
 /dist-newstyle
 /stack.yaml.lock
 /.hie/
+/.ghc.environment.x86_64-darwin-*
+/cabal.project.local*
