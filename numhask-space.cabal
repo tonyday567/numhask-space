@@ -37,7 +37,6 @@ tested-with:
    || ==9.0.1
    || ==9.2.0.20210821
 extra-source-files:
-  readme.md
   ChangeLog.md
 source-repository head
   type:

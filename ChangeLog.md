@@ -1,3 +1,8 @@
+0.8.1
+===
+* GHC 9.0.1 support
+* API fixes for random-1.2; `randomS`, `randomSM` & `randomSs` 
+
 0.7.0
 =====
 
