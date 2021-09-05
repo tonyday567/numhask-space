@@ -15,11 +15,16 @@ module NumHask.Space.XY
   )
 where
 
+import qualified Data.List.NonEmpty as NonEmpty
 import GHC.Show (show)
 import NumHask.Prelude hiding (show)
 import NumHask.Space.Point
 import NumHask.Space.Rect
 import NumHask.Space.Types
+
+-- $setup
+-- >>> import NumHask.Prelude
+-- >>> import NumHask.Space
 
 -- | unification of a point and rect on the plane
 data XY a
@@ -92,4 +97,5 @@ projectOn new old (RectXY r) = RectXY $ projectOnR new old r
 -- [P -0.5 -0.5,P 0.0 0.0,P 0.5 0.5]
 projectTo :: Rect Double -> [XY Double] -> [XY Double]
 projectTo _ [] = []
-projectTo vb (x : xs) = projectOn vb (toRect $ sconcat (x :| xs)) <$> (x : xs)
+projectTo vb (x : xs) =
+  projectOn vb (toRect $ sconcat (x NonEmpty.:| xs)) <$> (x : xs)

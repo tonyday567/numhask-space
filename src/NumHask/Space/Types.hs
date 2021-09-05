@@ -14,10 +14,12 @@ module NumHask.Space.Types
     Intersection (..),
     FieldSpace (..),
     mid,
+    interpolate,
     project,
     Pos (..),
     space1,
     randomS,
+    randomSM,
     randomSs,
     memberOf,
     contains,
@@ -38,8 +40,16 @@ module NumHask.Space.Types
   )
 where
 
-import NumHask.Prelude hiding (rotate)
+import Control.Monad
+import NumHask.Prelude
+import System.Random.Stateful
 import qualified Prelude as P
+
+-- $setup
+-- >>> import NumHask.Prelude
+-- >>> import NumHask.Space
+-- >>> import System.Random.Stateful
+-- >>> let g = mkStdGen 42
 
 -- | A 'Space' is a continuous set of numbers. Continuous here means that the set has an upper and lower bound, and an element that is between these two bounds is a member of the 'Space'.
 --
@@ -162,19 +172,30 @@ instance (Space a) => Semigroup (Intersection a) where
   (<>) (Intersection a) (Intersection b) = Intersection (a `union` b)
 
 -- | supply a random element within a 'Space'
-randomS :: (Space s, RandomGen g, Random (Element s)) => s -> g -> (Element s, g)
-randomS s = randomR (lower s, upper s)
+--
+-- >>> randomS (one :: Range Double) g
+-- (0.43085240252163404,StdGen {unStdGen = SMGen 4530528345362647137 13679457532755275413})
+randomS :: (Space s, RandomGen g, UniformRange (Element s)) => s -> g -> (Element s, g)
+randomS s = uniformR (lower s, upper s)
 
--- | supply an (infinite) list of random elements within a 'Space'
+-- | StatefulGen version of randomS
+--
+-- >>> import Control.Monad
+-- >>> runStateGen_ g (randomSM (one :: Range Double))
+-- 0.43085240252163404
+randomSM :: (UniformRange (Element s), StatefulGen g m, Space s) => s -> g -> m (Element s)
+randomSM s = uniformRM (lower s, upper s)
+
+-- | list of n random elements within a 'Space'
 --
 -- >>> let g = mkStdGen 42
--- >>> take 3 $ randomSs (one :: Range Double) g
+-- >>> fst (randomSs 3 (one :: Range Double) g)
 -- [0.43085240252163404,-6.472345419562497e-2,0.3854692674681801]
 --
--- >>> take 3 $ randomSs (Rect 0 10 0 10 :: Rect Word8) g
--- [Point 8 0,Point 6 4,Point 5 3]
-randomSs :: (Space s, RandomGen g, Random (Element s)) => s -> g -> [Element s]
-randomSs s = randomRs (lower s, upper s)
+-- >>> fst (randomSs 3 (Rect 0 10 0 10 :: Rect Int) g)
+-- [Point 0 7,Point 0 2,Point 1 7]
+randomSs :: (Space s, RandomGen g, UniformRange (Element s)) => Int -> s -> g -> ([Element s], g)
+randomSs n s g = runStateGen g (replicateM n . randomSM s)
 
 -- | a space that can be divided neatly
 --
@@ -206,6 +227,12 @@ data Pos
 -- | middle element of the space
 mid :: (Space s, Field (Element s)) => s -> Element s
 mid s = (lower s + upper s) / (one + one)
+
+-- | interpolate a space
+--
+-- > interpolate s x == project s (zero ... one) x
+interpolate :: (Space s, Ring (Element s)) => s -> Element s -> Element s
+interpolate s x = lower s + x * width s
 
 -- | project an element from one space to another, preserving relative position.
 --
@@ -304,10 +331,10 @@ inverseTransform (Transform a b c d e f) =
             ( Transform
                 (a / det)
                 (d / det)
-                (- (a * c + d * f) / det)
+                (-(a * c + d * f) / det)
                 (b / det)
                 (e / det)
-                (- (b * c + e * f) / det)
+                (-(b * c + e * f) / det)
             )
         )
         Nothing
@@ -337,4 +364,4 @@ instance (Multiplicative a, Additive a) => Affinity (Transform a) a where
 
 -- | Rotate an 'Affinity' (counter-clockwise)
 rotate :: (TrigField a) => a -> Transform a
-rotate a = Transform (cos a) (- sin a) zero (sin a) (cos a) zero
+rotate a = Transform (cos a) (-sin a) zero (sin a) (cos a) zero

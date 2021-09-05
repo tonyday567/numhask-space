@@ -1,7 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NegativeLiterals #-}
 {-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE StrictData #-}
 {-# OPTIONS_GHC -Wall #-}
@@ -14,6 +13,7 @@ module NumHask.Space.Time
     TimeGrain (..),
     floorGrain,
     ceilingGrain,
+    addGrain,
     sensibleTimeGrid,
     PosDiscontinuous (..),
     placedTimeLabelDiscontinuous,
@@ -28,7 +28,7 @@ where
 import Data.Containers.ListUtils (nubOrd)
 import Data.Fixed (Fixed (MkFixed))
 import qualified Data.Sequence as Seq
-import Data.String (String)
+import Data.Text (Text, pack, unpack)
 import Data.Time
 import NumHask.Prelude
 import NumHask.Space.Range
@@ -36,18 +36,17 @@ import NumHask.Space.Types
 
 -- $setup
 --
--- >>> :set -XRebindableSyntax
--- >>> :set -XNegativeLiterals
 -- >>> import NumHask.Prelude
 -- >>> import NumHask.Space
--- >>> Point 1 1
--- Point 1 1
+-- >>> import NumHask.Space.Time
+-- >>> import Data.Text (Text, pack)
+-- >>> import Data.Time
+--
+-- > :set -XOverloadedStrings
 
 -- | parse text as per iso8601
 --
--- >>> :set -XOverloadedStrings
--- >>> let t0 = parseUTCTime ("2017-12-05" :: Text)
--- >>> t0
+-- >>> parseUTCTime (pack "2017-12-05")
 -- Just 2017-12-05 00:00:00 UTC
 parseUTCTime :: Text -> Maybe UTCTime
 parseUTCTime =
@@ -236,7 +235,7 @@ data PosDiscontinuous = PosInnerOnly | PosIncludeBoundaries
 --
 -- The assumption with getSensibleTimeGrid is that there is a list of discountinuous UTCTimes rather than a continuous range.  Output is a list of index points for the original [UTCTime] and label tuples, and a list of unused list elements.
 --
--- >>> placedTimeLabelDiscontinuous PosIncludeBoundaries (Just "%d %b") 2 [UTCTime (fromGregorian 2017 12 6) (toDiffTime 0), UTCTime (fromGregorian 2017 12 29) (toDiffTime 0), UTCTime (fromGregorian 2018 1 31) (toDiffTime 0), UTCTime (fromGregorian 2018 3 3) (toDiffTime 0)]
+-- >>> placedTimeLabelDiscontinuous PosIncludeBoundaries (Just (pack "%d %b")) 2 [UTCTime (fromGregorian 2017 12 6) (toDiffTime 0), UTCTime (fromGregorian 2017 12 29) (toDiffTime 0), UTCTime (fromGregorian 2018 1 31) (toDiffTime 0), UTCTime (fromGregorian 2018 3 3) (toDiffTime 0)]
 -- ([(0,"06 Dec"),(1,"31 Dec"),(2,"28 Feb"),(3,"03 Mar")],[])
 placedTimeLabelDiscontinuous :: PosDiscontinuous -> Maybe Text -> Int -> [UTCTime] -> ([(Int, Text)], [UTCTime])
 placedTimeLabelDiscontinuous posd format n ts = (zip (fst <$> inds') labels, rem')
@@ -284,7 +283,7 @@ laterTimes (x : xs) =
 
 -- | A sensible time grid between two dates, projected onto (0,1) with no attempt to get finnicky.
 --
--- >>> placedTimeLabelContinuous PosIncludeBoundaries (Just "%d %b") 2 (Range (UTCTime (fromGregorian 2017 12 6) (toDiffTime 0)) (UTCTime (fromGregorian 2017 12 29) (toDiffTime 0)))
+-- >>> placedTimeLabelContinuous PosIncludeBoundaries (Just (pack "%d %b")) 2 (Range (UTCTime (fromGregorian 2017 12 6) (toDiffTime 0)) (UTCTime (fromGregorian 2017 12 29) (toDiffTime 0)))
 -- [(0.0,"06 Dec"),(0.4347826086956521,"16 Dec"),(0.8695652173913042,"26 Dec"),(0.9999999999999999,"29 Dec")]
 placedTimeLabelContinuous :: PosDiscontinuous -> Maybe Text -> Int -> Range UTCTime -> [(Double, Text)]
 placedTimeLabelContinuous posd format n r@(Range l u) = zip tpsd labels
@@ -309,10 +308,10 @@ placedTimeLabelContinuous posd format n r@(Range l u) = zip tpsd labels
 -- >>> sensibleTimeGrid InnerPos 2 (Range (UTCTime (fromGregorian 2017 1 1) (toDiffTime 0)) (UTCTime (fromGregorian 2017 12 30) (toDiffTime 0)))
 -- (Months 6,[2017-06-30 00:00:00 UTC])
 --
--- >>>  sensibleTimeGrid UpperPos 2 (Range (UTCTime (fromGregorian 2017 1 1) (toDiffTime 0)) (UTCTime (fromGregorian 2017 12 30) (toDiffTime 0)))
+-- >>> sensibleTimeGrid UpperPos 2 (Range (UTCTime (fromGregorian 2017 1 1) (toDiffTime 0)) (UTCTime (fromGregorian 2017 12 30) (toDiffTime 0)))
 -- (Months 6,[2017-06-30 00:00:00 UTC,2017-12-31 00:00:00 UTC])
 --
--- >>>sensibleTimeGrid LowerPos 2 (Range (UTCTime (fromGregorian 2017 1 1) (toDiffTime 0)) (UTCTime (fromGregorian 2017 12 30) (toDiffTime 0)))
+-- >>> sensibleTimeGrid LowerPos 2 (Range (UTCTime (fromGregorian 2017 1 1) (toDiffTime 0)) (UTCTime (fromGregorian 2017 12 30) (toDiffTime 0)))
 -- (Months 6,[2016-12-31 00:00:00 UTC,2017-06-30 00:00:00 UTC])
 sensibleTimeGrid :: Pos -> Int -> Range UTCTime -> (TimeGrain, [UTCTime])
 sensibleTimeGrid p n (Range l u) = (grain, ts)

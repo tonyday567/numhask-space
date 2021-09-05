@@ -1,6 +1,6 @@
 cabal-version: 2.4
 name: numhask-space
-version: 0.7.1.0
+version: 0.8.1.0
 synopsis:
   Numerical spaces.
 description:
@@ -8,7 +8,6 @@ description:
     .
     == Usage
     .
-    >>> {-# LANGUAGE NegativeLiterals #-}
     >>> {-# LANGUAGE RebindableSyntax #-}
     >>> import NumHask.Prelude
     >>> import NumHask.Space
@@ -32,7 +31,11 @@ license-file:
   LICENSE
 build-type:
   Simple
-tested-with: GHC ==8.8.4 || ==8.10.2
+tested-with:
+  GHC ==8.8.4
+   || ==8.10.4
+   || ==9.0.1
+   || ==9.2.0.20210821
 extra-source-files:
   readme.md
   ChangeLog.md
@@ -59,9 +62,9 @@ library
     base >=4.7 && <5,
     containers >= 0.6 && < 0.7,
     distributive >=0.2.2 && <1,
-    numhask >= 0.7 && < 0.8,
-    random >=1.2 && < 1.3,
-    semigroupoids >=5 && <6,
+    numhask >= 0.8.1 && < 0.9,
+    random >= 1.2 && < 1.3,
+    semigroupoids >=5 && <5.4,
     tdigest >= 0.2.1 && < 0.3,
     text >= 1.2.3.1 && <2,
     time >= 1.9.1 && <1.12,
@@ -77,23 +80,3 @@ library
     NumHask.Space.XY
   other-modules:
   default-language: Haskell2010
-
-test-suite test
-  type: exitcode-stdio-1.0
-  main-is: test.hs
-  hs-source-dirs:
-    test
-  build-depends:
-    base >=4.7 && <5,
-    doctest >= 0.16 && < 0.18,
-    numhask >= 0.7 && < 0.8,
-  default-language: Haskell2010
-  ghc-options:
-    -Wall
-    -Wcompat
-    -Wincomplete-record-updates
-    -Wincomplete-uni-patterns
-    -Wredundant-constraints
-    -fwrite-ide-info
-    -hiedir=.hie
-  default-extensions:

@@ -31,14 +31,16 @@ where
 import Data.Distributive
 import Data.Functor.Classes
 import Data.Functor.Rep
-import GHC.Show (show)
-import NumHask.Prelude hiding (Distributive, rotate, show)
+import NumHask.Prelude hiding (Distributive)
 import qualified NumHask.Prelude as P
 import NumHask.Space.Range
 import NumHask.Space.Types
+import System.Random
+import System.Random.Stateful
 
 -- $setup
--- >>> :set -XNoImplicitPrelude
+-- >>> import NumHask.Prelude
+-- >>> import NumHask.Space
 
 -- | A 2-dimensional Point of a's
 --
@@ -168,15 +170,13 @@ instance (Ord a) => MeetSemiLattice (Point a) where
   (/\) (Point x y) (Point x' y') = Point (min x x') (min y y')
 
 instance
-  (ExpField a) =>
+  (ExpField a, Eq a) =>
   Norm (Point a) a
   where
   norm (Point x y) = sqrt (x * x + y * y)
-  basis p = p /. norm p
+  basis p = let m = norm p in bool (p /. m) zero (m == zero)
 
 -- | angle formed by a vector from the origin to a Point and the x-axis (Point 1 0). Note that an angle between two points p1 & p2 is thus angle p2 - angle p1
---
--- > \u@(Point ux uy) v@(Point vx vy) -> angle v - angle u == sign (ux*vy-uy*vx) * acos (dotP u v / (norm u * norm v))
 instance (TrigField a) => Direction (Point a) a where
   angle (Point x y) = atan2 y x
   ray x = Point (cos x) (sin x)
@@ -235,7 +235,7 @@ crossP (Point x y) (Point x' y') = x * y' - y * x'
 
 -- | reflect on x-axis
 flipY :: (Subtractive a) => Point a -> Point a
-flipY (Point x y) = Point x (- y)
+flipY (Point x y) = Point x (-y)
 
 -- | A line is a composed of 2 'Point's
 data Line a = Line
@@ -248,8 +248,8 @@ instance (Multiplicative a, Additive a) => Affinity (Line a) a where
   transform t (Line s e) = Line (transform t s) (transform t e)
 
 -- | Return the parameters (a, b, c) for the line equation @a*x + b*y + c = 0@.
-lineSolve :: ExpField a => Line a -> (a, a, a)
-lineSolve (Line p1 p2) = (- my, mx, c)
+lineSolve :: (ExpField a, Eq a) => Line a -> (a, a, a)
+lineSolve (Line p1 p2) = (-my, mx, c)
   where
     m@(Point mx my) = basis (p2 - p1)
     c = crossP p1 m

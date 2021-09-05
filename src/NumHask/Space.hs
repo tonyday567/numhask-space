@@ -45,7 +45,6 @@ import NumHask.Space.XY hiding ()
 -- $setup
 --
 -- >>> :set -XRebindableSyntax
--- >>> :set -XNegativeLiterals
 -- >>> import NumHask.Prelude
 -- >>> import NumHask.Space
 -- >>> Point 1 1
