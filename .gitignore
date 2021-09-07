@@ -9,3 +9,4 @@ TAGS
 /.hie/
 /.ghc.environment.x86_64-darwin-*
 /cabal.project.local*
+/.hkgr/
