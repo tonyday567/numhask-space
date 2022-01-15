@@ -1,3 +1,7 @@
+0.8.2
+===
+* replaced space1 partial with unsafeSpace1 + total space1
+
 0.8.1
 ===
 * GHC 9.0.1 support

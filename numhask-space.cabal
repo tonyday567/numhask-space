@@ -1,6 +1,6 @@
 cabal-version: 2.4
 name: numhask-space
-version: 0.8.1.0
+version: 0.8.2.0
 synopsis:
   Numerical spaces.
 description:
