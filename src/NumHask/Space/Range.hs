@@ -147,7 +147,7 @@ instance (Eq a, Ord a) => Semigroup (Range a) where
   (<>) a b = getUnion (Union a <> Union b)
 
 instance (Additive a, Eq a, Ord a) => Additive (Range a) where
-  (Range l u) + (Range l' u') = space1 [l + l', u + u']
+  (Range l u) + (Range l' u') = unsafeSpace1 [l + l', u + u']
   zero = Range zero zero
 
 instance (Subtractive a, Eq a, Ord a) => Subtractive (Range a) where

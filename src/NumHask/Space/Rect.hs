@@ -270,7 +270,7 @@ addPoint (Point x' y') (Rect x z y w) = Rect (x + x') (z + x') (y + y') (w + y')
 -- >>> rotationBound (pi/4) one
 -- Rect -0.7071067811865475 0.7071067811865475 -0.7071067811865475 0.7071067811865475
 rotationBound :: (TrigField a, Ord a) => a -> Rect a -> Rect a
-rotationBound d = space1 . fmap (rotate d |.) . corners4
+rotationBound d = unsafeSpace1 . fmap (rotate d |.) . corners4
 
 -- | Create Rects for a formulae y = f(x) across an x range where the y range is Range 0 y
 --

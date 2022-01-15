@@ -79,10 +79,11 @@ cutI cs a = go (Range zero (V.length cs))
 --
 -- >>> regular 4 [0..100]
 -- Histogram {cuts = [0.0,25.0,50.0,75.0,100.0], values = fromList [(1,25.0),(2,25.0),(3,25.0),(4,25.0),(5,1.0)]}
-regular :: Int -> [Double] -> Histogram
-regular n xs = fill cs xs
+regular :: Int -> [Double] -> Maybe Histogram
+regular _ [] = Nothing
+regular n xs = Just $ fill cs xs
   where
-    cs = grid OuterPos (space1 xs :: Range Double) n
+    cs = grid OuterPos (unsafeSpace1 xs :: Range Double) n
 
 -- | Transform a Histogram to Rects
 --

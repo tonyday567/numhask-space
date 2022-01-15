@@ -61,7 +61,7 @@ import System.Random.Stateful
 --
 -- This is used extensively in [chart-svg](https://hackage.haskell.org/package/chart-svg) to ergonomically obtain chart areas.
 --
--- > space1 [Point 1 0, Point 0 1] :: Rect Double
+-- > unsafeSpace1 [Point 1 0, Point 0 1] :: Rect Double
 -- Rect 0.0 1.0 0.0 1.0
 data Point a = Point
   { _x :: a,

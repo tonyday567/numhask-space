@@ -18,6 +18,7 @@ module NumHask.Space.Types
     project,
     Pos (..),
     space1,
+    unsafeSpace1,
     randomS,
     randomSM,
     randomSs,
@@ -199,7 +200,7 @@ randomSs n s g = runStateGen g (replicateM n . randomSM s)
 
 -- | a space that can be divided neatly
 --
--- > space1 (grid OuterPos s g) == s
+-- > unsafeSpace1 (grid OuterPos s g) == s
 -- > getUnion (sconcat (Union <$> (gridSpace s g))) == s
 class (Space s, Field (Element s)) => FieldSpace s where
   type Grid s :: Type
@@ -244,15 +245,22 @@ project :: (Space s, Field (Element s)) => s -> s -> Element s -> Element s
 project s0 s1 p =
   ((p - lower s0) / (upper s0 - lower s0)) * (upper s1 - lower s1) + lower s1
 
--- | the containing space of a non-empty Traversable
+-- | the containing space of a non-empty Traversable.
 --
--- > all $ space1 a `contains` <$> a
-space1 :: (Space s, Traversable f) => f (Element s) -> s
-space1 = P.foldr1 union . fmap singleton
+-- partial function.
+--
+-- > all $ unsafeSpace1 a `contains` <$> a
+--
+unsafeSpace1 :: (Space s, Traversable f) => f (Element s) -> s
+unsafeSpace1 = P.foldr1 union . fmap singleton
+
+-- | Maybe containing space of a traversable.
+space1 :: (Space s, Traversable f) => f (Element s) -> Maybe s
+space1 s = bool Nothing (Just $ unsafeSpace1 s) (null s)
 
 -- | lift a monotone function (increasing or decreasing) over a given space
 monotone :: (Space a, Space b) => (Element a -> Element b) -> a -> b
-monotone f s = space1 [f (lower s), f (upper s)]
+monotone f s = unsafeSpace1 [f (lower s), f (upper s)]
 
 -- | a small space
 eps ::

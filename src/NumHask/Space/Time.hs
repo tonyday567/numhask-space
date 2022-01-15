@@ -238,9 +238,10 @@ data PosDiscontinuous = PosInnerOnly | PosIncludeBoundaries
 -- >>> placedTimeLabelDiscontinuous PosIncludeBoundaries (Just (pack "%d %b")) 2 [UTCTime (fromGregorian 2017 12 6) (toDiffTime 0), UTCTime (fromGregorian 2017 12 29) (toDiffTime 0), UTCTime (fromGregorian 2018 1 31) (toDiffTime 0), UTCTime (fromGregorian 2018 3 3) (toDiffTime 0)]
 -- ([(0,"06 Dec"),(1,"31 Dec"),(2,"28 Feb"),(3,"03 Mar")],[])
 placedTimeLabelDiscontinuous :: PosDiscontinuous -> Maybe Text -> Int -> [UTCTime] -> ([(Int, Text)], [UTCTime])
+placedTimeLabelDiscontinuous _ _ _ [] = ([], [])
 placedTimeLabelDiscontinuous posd format n ts = (zip (fst <$> inds') labels, rem')
   where
-    r@(Range l u) = space1 ts
+    r@(Range l u) = unsafeSpace1 ts
     (grain, tps) = sensibleTimeGrid InnerPos n r
     tps' = case posd of
       PosInnerOnly -> tps
@@ -296,7 +297,7 @@ placedTimeLabelContinuous posd format n r@(Range l u) = zip tpsd labels
       Just f -> unpack f
       Nothing -> autoFormat grain
     labels = pack . formatTime defaultTimeLocale fmt <$> tps'
-    (Range l' u') = space1 tps'
+    (Range l' u') = unsafeSpace1 tps'
     r' = fromNominalDiffTime $ diffUTCTime u' l'
     tpsd = (/ r') . fromNominalDiffTime . flip diffUTCTime l <$> tps'
 
