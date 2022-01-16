@@ -256,7 +256,7 @@ unsafeSpace1 = P.foldr1 union . fmap singleton
 
 -- | Maybe containing space of a traversable.
 space1 :: (Space s, Traversable f) => f (Element s) -> Maybe s
-space1 s = bool Nothing (Just $ unsafeSpace1 s) (null s)
+space1 s = bool (Just $ unsafeSpace1 s) Nothing (null s)
 
 -- | lift a monotone function (increasing or decreasing) over a given space
 monotone :: (Space a, Space b) => (Element a -> Element b) -> a -> b
