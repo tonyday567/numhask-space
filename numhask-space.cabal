@@ -1,6 +1,6 @@
 cabal-version: 2.4
 name: numhask-space
-version: 0.8.2.0
+version: 0.9.0.0
 synopsis:
   Numerical spaces.
 description:
@@ -33,9 +33,8 @@ build-type:
   Simple
 tested-with:
   GHC ==8.8.4
-   || ==8.10.4
-   || ==9.0.1
-   || ==9.2.0.20210821
+   || ==8.10.7
+   || ==9.2.1
 extra-source-files:
   ChangeLog.md
 source-repository head
@@ -61,7 +60,7 @@ library
     base >=4.7 && <5,
     containers >= 0.6 && < 0.7,
     distributive >=0.2.2 && <1,
-    numhask >= 0.8.1 && < 0.9,
+    numhask >= 0.9.0 && < 0.10,
     random >= 1.2 && < 1.3,
     semigroupoids >=5 && <5.4,
     tdigest >= 0.2.1 && < 0.3,
@@ -76,6 +75,5 @@ library
     NumHask.Space.Point
     NumHask.Space.Time
     NumHask.Space.Histogram
-    NumHask.Space.XY
   other-modules:
   default-language: Haskell2010

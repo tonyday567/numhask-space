@@ -30,7 +30,6 @@ module NumHask.Space
     module NumHask.Space.Rect,
     module NumHask.Space.Time,
     module NumHask.Space.Histogram,
-    module NumHask.Space.XY,
   )
 where
 
@@ -40,7 +39,6 @@ import NumHask.Space.Range hiding ()
 import NumHask.Space.Rect hiding ()
 import NumHask.Space.Time hiding ()
 import NumHask.Space.Types hiding ()
-import NumHask.Space.XY hiding ()
 
 -- $setup
 --
