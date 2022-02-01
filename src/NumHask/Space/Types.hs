@@ -250,7 +250,6 @@ project s0 s1 p =
 -- partial function.
 --
 -- > all $ unsafeSpace1 a `contains` <$> a
---
 unsafeSpace1 :: (Space s, Traversable f) => f (Element s) -> s
 unsafeSpace1 = P.foldr1 union . fmap singleton
 
