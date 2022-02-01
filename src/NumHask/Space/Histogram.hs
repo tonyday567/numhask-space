@@ -7,6 +7,7 @@
 -- | A histogram, if you squint, is a series of contiguous 'Range's, annotated with values.
 module NumHask.Space.Histogram
   ( Histogram (..),
+    emptyHistogram,
     DealOvers (..),
     fill,
     cutI,
@@ -42,6 +43,10 @@ data Histogram = Histogram
     values :: Map.Map Int Double -- bucket counts
   }
   deriving (Show, Eq)
+
+-- | A histogram with no cuts nor data.
+emptyHistogram :: Histogram
+emptyHistogram = Histogram V.empty Map.empty
 
 -- | Whether or not to ignore unders and overs.  If overs and unders are dealt with, IncludeOvers supplies an assumed width for the outer buckets.
 data DealOvers = IgnoreOvers | IncludeOvers Double
@@ -79,9 +84,9 @@ cutI cs a = go (Range zero (V.length cs))
 --
 -- >>> regular 4 [0..100]
 -- Histogram {cuts = [0.0,25.0,50.0,75.0,100.0], values = fromList [(1,25.0),(2,25.0),(3,25.0),(4,25.0),(5,1.0)]}
-regular :: Int -> [Double] -> Maybe Histogram
-regular _ [] = Nothing
-regular n xs = Just $ fill cs xs
+regular :: Int -> [Double] -> Histogram
+regular _ [] = emptyHistogram
+regular n xs = fill cs xs
   where
     cs = grid OuterPos (unsafeSpace1 xs :: Range Double) n
 

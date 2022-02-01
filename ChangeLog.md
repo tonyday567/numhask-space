@@ -1,3 +1,8 @@
+0.9.0
+===
+* added emptyHistogram
+* fixes for numhask-0.9
+
 0.8.2
 ===
 * replaced space1 partial with unsafeSpace1 + total space1
