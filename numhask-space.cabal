@@ -41,7 +41,7 @@ library
     , base           >=4.7     && <5
     , containers     ^>=0.6
     , distributive   >=0.2.2   && <1
-    , numhask        ^>=0.9.0
+    , numhask        ^>=0.10.0
     , random         ^>=1.2
     , semigroupoids  >=5       && <5.4
     , tdigest        ^>=0.2.1

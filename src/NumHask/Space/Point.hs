@@ -41,6 +41,7 @@ import System.Random.Stateful
 -- $setup
 -- >>> import NumHask.Prelude
 -- >>> import NumHask.Space
+-- >>> :set -XFlexibleContexts
 
 -- | A 2-dimensional Point of a's
 --
@@ -210,7 +211,7 @@ rotateP d p = rotate d |. p
 
 -- | Create Points for a formulae y = f(x) across an x range
 --
--- >>> gridP (^2) (Range 0 4) 4
+-- >>> gridP (^^2) (Range 0 4) 4
 -- [Point 0.0 0.0,Point 1.0 1.0,Point 2.0 4.0,Point 3.0 9.0,Point 4.0 16.0]
 gridP :: (FieldSpace (Range a)) => (a -> a) -> Range a -> Grid (Range a) -> [Point a]
 gridP f r g = (\x -> Point x (f x)) <$> grid OuterPos r g
