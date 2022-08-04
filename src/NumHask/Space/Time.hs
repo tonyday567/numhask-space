@@ -270,7 +270,7 @@ autoFormat (Hours x)
   | x > 3 = "%d/%m/%y %R"
   | otherwise = "%R"
 autoFormat (Minutes _) = "%R"
-autoFormat (Seconds _) = "%R%Q"
+autoFormat (Seconds _) = "%T%Q"
 
 laterTimes :: [(Int, a)] -> [(Int, a)]
 laterTimes [] = []
