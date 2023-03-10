@@ -6,6 +6,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wall #-}
+{-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
 -- | A Space containing numerical elements
 module NumHask.Space.Range
@@ -115,7 +116,7 @@ instance (Ord a) => JoinSemiLattice (Range a) where
 instance (Ord a) => MeetSemiLattice (Range a) where
   (/\) = liftR2 max
 
-instance (Eq a, Ord a) => Space (Range a) where
+instance (Ord a) => Space (Range a) where
   type Element (Range a) = a
 
   lower (Range l _) = l
@@ -143,17 +144,17 @@ instance (Field a, Ord a, FromIntegral a Int) => FieldSpace (Range a) where
       ps = grid OuterPos r n
 
 -- | Monoid based on convex hull union
-instance (Eq a, Ord a) => Semigroup (Range a) where
+instance (Ord a) => Semigroup (Range a) where
   (<>) a b = getUnion (Union a <> Union b)
 
-instance (Additive a, Eq a, Ord a) => Additive (Range a) where
+instance (Additive a, Ord a) => Additive (Range a) where
   (Range l u) + (Range l' u') = unsafeSpace1 [l + l', u + u']
   zero = Range zero zero
 
-instance (Subtractive a, Eq a, Ord a) => Subtractive (Range a) where
+instance (Subtractive a, Ord a) => Subtractive (Range a) where
   negate (Range l u) = negate u ... negate l
 
-instance (Field a, Eq a, Ord a) => Multiplicative (Range a) where
+instance (Field a, Ord a) => Multiplicative (Range a) where
   a * b = bool (Range (m - r / (one + one)) (m + r / (one + one))) zero (a == zero || b == zero)
     where
       m = mid a + mid b
@@ -167,7 +168,7 @@ instance (Ord a, Field a) => Divisive (Range a) where
       m = mid a
       r = width a
 
-instance (Field a, Subtractive a, Eq a, Ord a) => Signed (Range a) where
+instance (Field a, Ord a) => Signed (Range a) where
   sign (Range l u) = bool (negate one) one (u >= l)
   abs (Range l u) = bool (u ... l) (l ... u) (u >= l)
 

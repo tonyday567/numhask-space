@@ -102,7 +102,7 @@ instance Traversable Point where
 instance (Semigroup a) => Semigroup (Point a) where
   (Point a0 b0) <> (Point a1 b1) = Point (a0 <> a1) (b0 <> b1)
 
-instance (Semigroup a, Monoid a) => Monoid (Point a) where
+instance (Monoid a) => Monoid (Point a) where
   mempty = Point mempty mempty
 
   mappend = (<>)
@@ -258,8 +258,10 @@ lineDistance (Line (Point x1 y1) (Point x2 y2)) =
   let dy = y1 - y2
       dx = x2 - x1
       d = sqrt (dx * dx + dy * dy)
-   in dy `seq` dx `seq` d
-        `seq` \(Point x y) -> (x - x1) * dy / d + (y - y1) * dx / d
+   in dy `seq`
+        dx `seq`
+          d `seq`
+            \(Point x y) -> (x - x1) * dy / d + (y - y1) * dx / d
 
 -- | Return the point on the line closest to the given point.
 closestPoint :: (Field a) => Line a -> Point a -> Point a

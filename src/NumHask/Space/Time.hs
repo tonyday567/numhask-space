@@ -9,8 +9,7 @@
 
 -- | data algorithms related to time (as a Space)
 module NumHask.Space.Time
-  ( parseUTCTime,
-    TimeGrain (..),
+  ( TimeGrain (..),
     floorGrain,
     ceilingGrain,
     addGrain,
@@ -43,14 +42,6 @@ import NumHask.Space.Types
 -- >>> import Data.Time
 --
 -- > :set -XOverloadedStrings
-
--- | parse text as per iso8601
---
--- >>> parseUTCTime (pack "2017-12-05")
--- Just 2017-12-05 00:00:00 UTC
-parseUTCTime :: Text -> Maybe UTCTime
-parseUTCTime =
-  parseTimeM False defaultTimeLocale (iso8601DateFormat Nothing) . unpack
 
 -- | a step in time
 data TimeGrain
