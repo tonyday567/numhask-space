@@ -30,6 +30,8 @@ import Data.Fixed (Fixed (MkFixed))
 import qualified Data.Sequence as Seq
 import Data.Text (Text, pack, unpack)
 import Data.Time
+import Data.Time.Format
+import Data.Time.Format.ISO8601
 import NumHask.Prelude
 import NumHask.Space.Range
 import NumHask.Space.Types
@@ -50,7 +52,7 @@ import NumHask.Space.Types
 -- Just 2017-12-05 00:00:00 UTC
 parseUTCTime :: Text -> Maybe UTCTime
 parseUTCTime =
-  parseTimeM False defaultTimeLocale (iso8601DateFormat Nothing) . unpack
+  iso8601ParseM . unpack
 
 -- | a step in time
 data TimeGrain
