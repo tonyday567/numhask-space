@@ -288,8 +288,7 @@ placedTimeLabelContinuous posd format n r@(Range l u) = zip tpsd labels
       Just f -> unpack f
       Nothing -> autoFormat grain
     labels = pack . formatTime defaultTimeLocale fmt <$> tps'
-    (Range l' u') = unsafeSpace1 tps'
-    r' = fromNominalDiffTime $ diffUTCTime u' l'
+    r' = fromNominalDiffTime $ diffUTCTime u l
     tpsd = (/ r') . fromNominalDiffTime . flip diffUTCTime l <$> tps'
 
 -- | compute a sensible TimeGrain and list of UTCTimes
