@@ -127,9 +127,13 @@ instance (P.Distributive a) => P.Distributive (Point a)
 
 instance (Field a) => Field (Point a)
 
+{-
+Manhattan
+
 instance (Signed a) => Signed (Point a) where
   sign = fmap sign
   abs = fmap abs
+-}
 
 instance (Divisive a) => Divisive (Point a) where
   recip = fmap recip
@@ -140,16 +144,18 @@ instance Distributive Point where
       getL (Point l _) = l
       getR (Point _ r) = r
 
-instance (Additive a) => AdditiveAction (Point a) a where
+instance (Additive a) => AdditiveAction (Point a) where
+  type AdditiveScalar (Point a) = a
   (.+) a (Point x y) = Point (a + x) (a + y)
 
-instance (Subtractive a) => SubtractiveAction (Point a) a where
+instance (Subtractive a) => SubtractiveAction (Point a) where
   (.-) a (Point x y) = Point (a - x) (a - y)
 
-instance (Multiplicative a) => MultiplicativeAction (Point a) a where
+instance (Multiplicative a) => MultiplicativeAction (Point a) where
+  type Scalar (Point a) = a
   (.*) a (Point x y) = Point (a * x) (a * y)
 
-instance (Divisive a) => DivisiveAction (Point a) a where
+instance (Divisive a) => DivisiveAction (Point a) where
   (./) a (Point x y) = Point (a / x) (a / y)
 
 instance Representable Point where
@@ -168,13 +174,17 @@ instance (Ord a) => MeetSemiLattice (Point a) where
 
 instance
   (ExpField a, Eq a) =>
-  Norm (Point a) a
+  Basis (Point a)
   where
-  norm (Point x y) = sqrt (x * x + y * y)
-  basis p = let m = norm p in bool (p /. m) zero (m == zero)
+    type Mag (Point a) = a
+    type Base (Point a) = Point a
+
+    magnitude (Point x y) = sqrt (x * x + y * y)
+    basis p = let m = magnitude p in bool (p /. m) zero (m == zero)
 
 -- | angle formed by a vector from the origin to a Point and the x-axis (Point 1 0). Note that an angle between two points p1 & p2 is thus angle p2 - angle p1
-instance (TrigField a) => Direction (Point a) a where
+instance (TrigField a) => Direction (Point a) where
+  type Dir (Point a) = a
   angle (Point x y) = atan2 y x
   ray x = Point (cos x) (sin x)
 
@@ -276,7 +286,7 @@ closestPoint (Line p1 p2) p3 = Point px py
 
 -- | Calculate the intersection of two lines.  If the determinant is
 -- less than tolerance (parallel or coincident lines), return Nothing.
-lineIntersect :: (Ord a, Epsilon a, Signed a, Field a) => Line a -> Line a -> Maybe (Point a)
+lineIntersect :: (Ord a, Epsilon a, Absolute a, Field a) => Line a -> Line a -> Maybe (Point a)
 lineIntersect (Line p1 p2) (Line p3 p4)
   | abs det <= epsilon = Nothing
   | otherwise = Just $ (a .* d2 - b .* d1) /. det

@@ -45,7 +45,7 @@ import NumHask.Space.Types
 
 -- | a step in time
 data TimeGrain
-  = Years Integer
+  = Years Int
   | Months Int
   | Days Int
   | Hours Int
@@ -74,7 +74,7 @@ toNominalDiffTime x =
       days = floor (x / fromNominalDiffTime nominalDay)
       secs = x - fromIntegral days * fromNominalDiffTime nominalDay
       t0 = UTCTime d0 (picosecondsToDiffTime 0)
-      t1 = UTCTime (addDays days d0) (picosecondsToDiffTime $ floor (secs / 1.0e-12))
+      t1 = UTCTime (addDays (fromIntegral days) d0) (picosecondsToDiffTime . fromIntegral $ floor (secs / 1.0e-12))
    in diffUTCTime t1 t0
 
 -- | Convert from 'DiffTime' to seconds (as a Double)
@@ -88,7 +88,7 @@ fromDiffTime = (* 1e-12) . fromInteger . diffTimeToPicoseconds
 -- >>> toDiffTime 1
 -- 1s
 toDiffTime :: Double -> DiffTime
-toDiffTime = picosecondsToDiffTime . floor . (* 1e12)
+toDiffTime = picosecondsToDiffTime . fromIntegral . floor . (* 1e12)
 
 -- | add a TimeGrain to a UTCTime
 --
@@ -105,7 +105,7 @@ toDiffTime = picosecondsToDiffTime . floor . (* 1e12)
 -- 2015-02-28 00:01:00.001 UTC
 addGrain :: TimeGrain -> Int -> UTCTime -> UTCTime
 addGrain (Years n) x (UTCTime d t) =
-  UTCTime (addDays (-1) $ addGregorianYearsClip (n * fromIntegral x) (addDays 1 d)) t
+  UTCTime (addDays (-1) $ addGregorianYearsClip (fromIntegral n * fromIntegral x) (addDays 1 d)) t
 addGrain (Months n) x (UTCTime d t) =
   UTCTime (addDays (-1) $ addGregorianMonthsClip (fromIntegral (n * x)) (addDays 1 d)) t
 addGrain (Days n) x (UTCTime d t) = UTCTime (addDays (fromIntegral x * fromIntegral n) d) t
@@ -117,7 +117,7 @@ addHalfGrain :: TimeGrain -> UTCTime -> UTCTime
 addHalfGrain (Years n) (UTCTime d t) =
   UTCTime
     ( addDays (-1) . (if m' == 1 then addGregorianMonthsClip 6 else id) $
-        addGregorianYearsClip d' (addDays 1 d)
+        addGregorianYearsClip (fromIntegral d') (addDays 1 d)
     )
     t
   where
@@ -160,24 +160,24 @@ floorGrain :: TimeGrain -> UTCTime -> UTCTime
 floorGrain (Years n) (UTCTime d _) = UTCTime (addDays (-1) $ fromGregorian y' 1 1) (secondsToDiffTime 0)
   where
     (y, _, _) = toGregorian (addDays 1 d)
-    y' = fromIntegral $ 1 + n * floor (fromIntegral (y - 1) / fromIntegral n :: Double)
+    y' = fromIntegral $ 1 + n * fromIntegral (floor (fromIntegral (y - 1) / fromIntegral n :: Double))
 floorGrain (Months n) (UTCTime d _) = UTCTime (addDays (-1) $ fromGregorian y m' 1) (secondsToDiffTime 0)
   where
     (y, m, _) = toGregorian (addDays 1 d)
-    m' = fromIntegral (1 + fromIntegral n * floor (fromIntegral (m - 1) / fromIntegral n :: Double) :: Integer)
+    m' = fromIntegral (1 + fromIntegral n * floor (fromIntegral (m - 1) / fromIntegral n :: Double))
 floorGrain (Days _) (UTCTime d _) = UTCTime d (secondsToDiffTime 0)
 floorGrain (Hours h) u@(UTCTime _ t) = addUTCTime x u
   where
     s = fromDiffTime t
-    x = toNominalDiffTime $ fromIntegral (h * 3600 * fromIntegral (floor (s / (fromIntegral h * 3600)) :: Integer)) - s
+    x = toNominalDiffTime $ fromIntegral (h * 3600 * fromIntegral (floor (s / (fromIntegral h * 3600)))) - s
 floorGrain (Minutes m) u@(UTCTime _ t) = addUTCTime x u
   where
     s = fromDiffTime t
-    x = toNominalDiffTime $ fromIntegral (m * 60 * fromIntegral (floor (s / (fromIntegral m * 60)) :: Integer)) - s
+    x = toNominalDiffTime $ fromIntegral (m * 60 * fromIntegral (floor (s / (fromIntegral m * 60)))) - s
 floorGrain (Seconds secs) u@(UTCTime _ t) = addUTCTime x u
   where
     s = fromDiffTime t
-    x = toNominalDiffTime $ (secs * fromIntegral (floor (s / secs) :: Integer)) - s
+    x = toNominalDiffTime $ (secs * fromIntegral (floor (s / secs))) - s
 
 -- | compute the ceiling UTCTime based on the timegrain
 --
@@ -199,7 +199,7 @@ ceilingGrain :: TimeGrain -> UTCTime -> UTCTime
 ceilingGrain (Years n) (UTCTime d _) = UTCTime (addDays (-1) $ fromGregorian y' 1 1) (secondsToDiffTime 0)
   where
     (y, _, _) = toGregorian (addDays 1 d)
-    y' = fromIntegral $ 1 + n * ceiling (fromIntegral (y - 1) / fromIntegral n :: Double)
+    y' = fromIntegral $ 1 + n * fromIntegral (ceiling (fromIntegral (y - 1) / fromIntegral n :: Double))
 ceilingGrain (Months n) (UTCTime d _) = UTCTime (addDays (-1) $ fromGregorian y' m'' 1) (secondsToDiffTime 0)
   where
     (y, m, _) = toGregorian (addDays 1 d)
@@ -209,15 +209,15 @@ ceilingGrain (Days _) (UTCTime d t) = if t == secondsToDiffTime 0 then UTCTime d
 ceilingGrain (Hours h) u@(UTCTime _ t) = addUTCTime x u
   where
     s = fromDiffTime t
-    x = toNominalDiffTime $ fromIntegral (h * 3600 * fromIntegral (ceiling (s / (fromIntegral h * 3600)) :: Integer)) - s
+    x = toNominalDiffTime $ fromIntegral (h * 3600 * fromIntegral (ceiling (s / (fromIntegral h * 3600)))) - s
 ceilingGrain (Minutes m) u@(UTCTime _ t) = addUTCTime x u
   where
     s = fromDiffTime t
-    x = toNominalDiffTime $ fromIntegral (m * 60 * fromIntegral (ceiling (s / (fromIntegral m * 60)) :: Integer)) - s
+    x = toNominalDiffTime $ fromIntegral (m * 60 * fromIntegral (ceiling (s / (fromIntegral m * 60)))) - s
 ceilingGrain (Seconds secs) u@(UTCTime _ t) = addUTCTime x u
   where
     s = fromDiffTime t
-    x = toNominalDiffTime $ (secs * fromIntegral (ceiling (s / secs) :: Integer)) - s
+    x = toNominalDiffTime $ (secs * fromIntegral (ceiling (s / secs))) - s
 
 -- | whether to include lower and upper times
 data PosDiscontinuous = PosInnerOnly | PosIncludeBoundaries
@@ -314,8 +314,7 @@ sensibleTimeGrid p n (Range l u) = (grain, ts)
     n' =
       round $
         fromNominalDiffTime (diffUTCTime last' first')
-          / grainSecs grain ::
-        Integer
+          / grainSecs grain
     posns = case p of
       OuterPos -> take (fromIntegral $ n' + 1)
       InnerPos ->
@@ -344,7 +343,7 @@ stepSensible tp span' n =
       then step / 2
       else 0
   where
-    step' = 10 ^^ (floor (logBase 10 (span' / fromIntegral n)) :: Integer)
+    step' = 10 ^^ floor (logBase 10 (span' / fromIntegral n))
     err = fromIntegral n / span' * step'
     step
       | err <= 0.15 = 10 * step'
@@ -365,7 +364,7 @@ stepSensible3 tp span' n =
       then step / 2
       else 0
   where
-    step' = 10 ^^ (floor (logBase 10 (span' / fromIntegral n)) :: Integer)
+    step' = 10 ^^ floor (logBase 10 (span' / fromIntegral n))
     err = fromIntegral n / span' * step'
     step
       | err <= 0.05 = 12 * step'
@@ -377,10 +376,10 @@ stepSensible3 tp span' n =
 stepSensibleTime :: Pos -> NominalDiffTime -> Int -> TimeGrain
 stepSensibleTime tp span' n
   | yearsstep >= 1 = Years (floor yearsstep)
-  | monthsstep >= 1 = Months (fromIntegral (floor monthsstep :: Integer))
-  | daysstep >= 1 = Days (fromIntegral (floor daysstep :: Integer))
-  | hoursstep >= 1 = Hours (fromIntegral (floor hoursstep :: Integer))
-  | minutesstep >= 1 = Minutes (fromIntegral (floor minutesstep :: Integer))
+  | monthsstep >= 1 = Months (fromIntegral (floor monthsstep))
+  | daysstep >= 1 = Days (fromIntegral (floor daysstep))
+  | hoursstep >= 1 = Hours (fromIntegral (floor hoursstep))
+  | minutesstep >= 1 = Minutes (fromIntegral (floor minutesstep))
   | secondsstep >= 1 = Seconds secondsstep3
   | otherwise = Seconds secondsstep
   where

@@ -168,15 +168,17 @@ instance (Ord a, Field a) => Divisive (Range a) where
       m = mid a
       r = width a
 
-instance (Field a, Ord a) => Signed (Range a) where
-  sign (Range l u) = bool (negate one) one (u >= l)
-  abs (Range l u) = bool (u ... l) (l ... u) (u >= l)
+instance (Field a, Ord a) => Basis (Range a) where
+  type Mag (Range a) = Range a
+  type Base (Range a) = a
+  basis (Range l u) = bool (negate one) one (u >= l)
+  magnitude (Range l u) = bool (u ... l) (l ... u) (u >= l)
 
-stepSensible :: Pos -> Double -> Integer -> Double
+stepSensible :: Pos -> Double -> Int -> Double
 stepSensible tp span' n =
   step + bool 0 (step / 2) (tp == MidPos)
   where
-    step' = 10.0 ^^ (floor (logBase 10 (span' / fromInteger n)) :: Integer)
+    step' = 10.0 ^^ floor (logBase 10 (span' / fromIntegral n))
     err = fromIntegral n / span' * step'
     step
       | err <= 0.15 = 10.0 * step'
@@ -192,7 +194,7 @@ gridSensible ::
   Pos ->
   Bool ->
   Range Double ->
-  Integer ->
+  Int ->
   [Double]
 gridSensible tp inside r@(Range l u) n =
   bool id (filter (`memberOf` r)) inside $
@@ -201,12 +203,12 @@ gridSensible tp inside r@(Range l u) n =
     posns = (first' +) . (step *) . fromIntegral <$> [i0 .. i1]
     span' = u - l
     step = stepSensible tp span' n
-    first' = step * fromIntegral (floor (l / step + 1e-6) :: Integer)
-    last' = step * fromIntegral (ceiling (u / step - 1e-6) :: Integer)
+    first' = step * fromIntegral (floor (l / step + 1e-6))
+    last' = step * fromIntegral (ceiling (u / step - 1e-6))
     n' = round ((last' - first') / step)
     (i0, i1) =
       case tp of
-        OuterPos -> (0 :: Integer, n')
+        OuterPos -> (0, n')
         InnerPos -> (1, n' - 1)
         LowerPos -> (0, n' - 1)
         UpperPos -> (1, n')
