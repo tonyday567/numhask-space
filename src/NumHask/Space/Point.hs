@@ -32,7 +32,6 @@ import Data.Distributive
 import Data.Functor.Classes
 import Data.Functor.Rep
 import NumHask.Prelude hiding (Distributive)
-import qualified NumHask.Prelude as P
 import NumHask.Space.Range
 import NumHask.Space.Types
 import System.Random
@@ -123,12 +122,8 @@ instance (Multiplicative a) => Multiplicative (Point a) where
   (Point a0 b0) * (Point a1 b1) = Point (a0 * a1) (b0 * b1)
   one = Point one one
 
-instance (P.Distributive a) => P.Distributive (Point a)
-
-instance (Field a) => Field (Point a)
-
 {-
-Manhattan
+TODO: Manhattan
 
 instance (Signed a) => Signed (Point a) where
   sign = fmap sign
