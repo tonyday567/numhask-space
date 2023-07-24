@@ -141,17 +141,17 @@ instance Distributive Point where
 
 instance (Additive a) => AdditiveAction (Point a) where
   type AdditiveScalar (Point a) = a
-  (.+) a (Point x y) = Point (a + x) (a + y)
+  (+.) (Point x y) a = Point (a + x) (a + y)
 
 instance (Subtractive a) => SubtractiveAction (Point a) where
-  (.-) a (Point x y) = Point (a - x) (a - y)
+  (-.) (Point x y) a = Point (x - a) (y - a)
 
 instance (Multiplicative a) => MultiplicativeAction (Point a) where
   type Scalar (Point a) = a
-  (.*) a (Point x y) = Point (a * x) (a * y)
+  (*.) (Point x y) a = Point (a * x) (a * y)
 
 instance (Divisive a) => DivisiveAction (Point a) where
-  (./) a (Point x y) = Point (a / x) (a / y)
+  (/.) (Point x y) a = Point (x / a) (y / a)
 
 instance Representable Point where
   type Rep Point = Bool

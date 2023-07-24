@@ -19,8 +19,6 @@ import Data.Distributive as D
 import Data.Functor.Apply (Apply (..))
 import Data.Functor.Classes
 import Data.Functor.Rep
-import Data.Semigroup.Foldable (Foldable1 (..))
-import Data.Semigroup.Traversable (Traversable1 (..))
 import GHC.Show (show)
 import NumHask.Prelude hiding (show)
 import NumHask.Space.Types as S
@@ -88,13 +86,8 @@ instance Applicative Range where
 instance Foldable Range where
   foldMap f (Range a b) = f a `mappend` f b
 
-instance Foldable1 Range
-
 instance Traversable Range where
   traverse f (Range a b) = Range <$> f a <*> f b
-
-instance Traversable1 Range where
-  traverse1 f (Range a b) = Range <$> f a Data.Functor.Apply.<.> f b
 
 instance D.Distributive Range where
   collect f x = Range (getL . f <$> x) (getR . f <$> x)
