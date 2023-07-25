@@ -1,15 +1,8 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DeriveTraversable #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE NegativeLiterals #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE RebindableSyntax #-}
-{-# LANGUAGE StrictData #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# OPTIONS_GHC -Wall #-}
 
 -- | A (finite) two-dimensional plane, implemented as a composite of a 'Point' of 'Range's.
 module NumHask.Space.Rect
@@ -239,9 +232,11 @@ instance (Ord a, Field a) => Multiplicative (Rect a) where
 instance (Ord a, Field a) => Divisive (Rect a) where
   recip (Ranges x y) = Ranges (recip x) (recip y)
 
-instance (Ord a, Field a) => Signed (Rect a) where
-  sign (Rect x z y w) = bool (negate one) one (z >= x && (w >= y))
-  abs (Ranges x y) = Ranges (abs x) (abs y)
+instance (Ord a, Field a) => Basis (Rect a) where
+  type Mag (Rect a) = Rect a
+  type Base (Rect a) = a
+  basis (Rect x z y w) = bool (negate one) one (z >= x && (w >= y))
+  magnitude (Ranges x y) = Ranges (magnitude x) (magnitude y)
 
 -- | convex hull union of Rect's
 --

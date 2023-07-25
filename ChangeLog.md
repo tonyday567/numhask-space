@@ -1,3 +1,7 @@
+0.11.0.0
+===
+* fixes for numhask-0.11
+
 0.9.0
 ===
 * added emptyHistogram

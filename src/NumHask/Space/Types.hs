@@ -1,7 +1,4 @@
 {-# LANGUAGE DefaultSignatures #-}
-{-# LANGUAGE DeriveTraversable #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -44,7 +41,7 @@ where
 import Control.Monad
 import NumHask.Prelude
 import System.Random.Stateful
-import qualified Prelude as P
+import Prelude qualified as P
 
 -- $setup
 -- >>> import NumHask.Prelude
