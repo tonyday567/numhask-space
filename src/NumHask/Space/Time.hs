@@ -20,7 +20,7 @@ where
 
 import Data.Containers.ListUtils (nubOrd)
 import Data.Fixed (Fixed (MkFixed))
-import Data.Sequence qualified as Seq
+import qualified Data.Sequence as Seq
 import Data.Text (Text, pack, unpack)
 import Data.Time
 import NumHask.Prelude

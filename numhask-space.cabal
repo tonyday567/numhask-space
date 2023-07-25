@@ -84,6 +84,10 @@ common ghc2021-stanza
     default-extensions:
       ImportQualifiedPost
       StandaloneKindSignatures
+  -- keeping ormolu happy
+  if impl(ghc >=8.10)
+    default-extensions:
+      NoImportQualifiedPost
 
 common ghc-options-stanza
   ghc-options:

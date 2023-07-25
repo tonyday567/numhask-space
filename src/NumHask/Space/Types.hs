@@ -41,7 +41,7 @@ where
 import Control.Monad
 import NumHask.Prelude
 import System.Random.Stateful
-import Prelude qualified as P
+import qualified Prelude as P
 
 -- $setup
 -- >>> import NumHask.Prelude
