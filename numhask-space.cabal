@@ -22,7 +22,7 @@ license:            BSD-3-Clause
 license-file:       LICENSE
 build-type:         Simple
 tested-with:
-  GHC ==8.6.5 || ==8.8.4 || ==8.10.7 || ==9.2.8 || ==9.4.5 || ==9.6.2
+  GHC ==8.10.7 || ==9.2.8 || ==9.4.5 || ==9.6.2
 extra-doc-files: ChangeLog.md
 
 source-repository head
@@ -84,10 +84,6 @@ common ghc2021-stanza
     default-extensions:
       ImportQualifiedPost
       StandaloneKindSignatures
-  -- keeping ormolu happy
-  if impl(ghc >=8.10)
-    default-extensions:
-      NoImportQualifiedPost
 
 common ghc-options-stanza
   ghc-options:
