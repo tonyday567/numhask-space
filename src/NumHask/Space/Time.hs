@@ -1,11 +1,5 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RebindableSyntax #-}
-{-# LANGUAGE StrictData #-}
-{-# OPTIONS_GHC -Wall #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
-{-# OPTIONS_GHC -fno-warn-type-defaults #-}
 
 -- | data algorithms related to time (as a Space)
 module NumHask.Space.Time

@@ -1,7 +1,5 @@
 {-# LANGUAGE NegativeLiterals #-}
 {-# LANGUAGE RebindableSyntax #-}
-{-# OPTIONS_GHC -Wall #-}
-{-# OPTIONS_GHC -fno-warn-type-defaults #-}
 
 -- | Mathematics does not rigorously define a [space](https://en.wikipedia.org/wiki/Space_(mathematics\)), leaving library devs free to explore.
 --

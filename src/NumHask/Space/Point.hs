@@ -1,12 +1,5 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DeriveTraversable #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RebindableSyntax #-}
-{-# LANGUAGE StrictData #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# OPTIONS_GHC -Wall #-}
 
 -- | A 2-dimensional point.
 module NumHask.Space.Point
@@ -122,14 +115,6 @@ instance (Multiplicative a) => Multiplicative (Point a) where
   (Point a0 b0) * (Point a1 b1) = Point (a0 * a1) (b0 * b1)
   one = Point one one
 
-{-
-TODO: Manhattan
-
-instance (Signed a) => Signed (Point a) where
-  sign = fmap sign
-  abs = fmap abs
--}
-
 instance (Divisive a) => Divisive (Point a) where
   recip = fmap recip
 
@@ -141,17 +126,17 @@ instance Distributive Point where
 
 instance (Additive a) => AdditiveAction (Point a) where
   type AdditiveScalar (Point a) = a
-  (+.) (Point x y) a = Point (a + x) (a + y)
+  (|+) (Point x y) a = Point (a + x) (a + y)
 
 instance (Subtractive a) => SubtractiveAction (Point a) where
-  (-.) (Point x y) a = Point (x - a) (y - a)
+  (|-) (Point x y) a = Point (x - a) (y - a)
 
 instance (Multiplicative a) => MultiplicativeAction (Point a) where
   type Scalar (Point a) = a
-  (*.) (Point x y) a = Point (a * x) (a * y)
+  (|*) (Point x y) a = Point (a * x) (a * y)
 
 instance (Divisive a) => DivisiveAction (Point a) where
-  (/.) (Point x y) a = Point (x / a) (y / a)
+  (|/) (Point x y) a = Point (x / a) (y / a)
 
 instance Representable Point where
   type Rep Point = Bool
@@ -175,7 +160,7 @@ instance
     type Base (Point a) = Point a
 
     magnitude (Point x y) = sqrt (x * x + y * y)
-    basis p = let m = magnitude p in bool (p /. m) zero (m == zero)
+    basis p = let m = magnitude p in bool (p |/ m) zero (m == zero)
 
 -- | angle formed by a vector from the origin to a Point and the x-axis (Point 1 0). Note that an angle between two points p1 & p2 is thus angle p2 - angle p1
 instance (TrigField a) => Direction (Point a) where
@@ -284,7 +269,7 @@ closestPoint (Line p1 p2) p3 = Point px py
 lineIntersect :: (Ord a, Epsilon a, Absolute a, Field a) => Line a -> Line a -> Maybe (Point a)
 lineIntersect (Line p1 p2) (Line p3 p4)
   | abs det <= epsilon = Nothing
-  | otherwise = Just $ (a .* d2 - b .* d1) /. det
+  | otherwise = Just $ (a *| d2 - b *| d1) |/ det
   where
     d1 = p1 - p2
     d2 = p3 - p4

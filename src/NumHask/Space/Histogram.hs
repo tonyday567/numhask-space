@@ -1,7 +1,5 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE RebindableSyntax #-}
-{-# LANGUAGE StrictData #-}
-{-# OPTIONS_GHC -Wall #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 
 -- | A histogram, if you squint, is a series of contiguous 'Range's, annotated with values.
