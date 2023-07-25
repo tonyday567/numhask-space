@@ -156,11 +156,11 @@ instance
   (ExpField a, Eq a) =>
   Basis (Point a)
   where
-    type Mag (Point a) = a
-    type Base (Point a) = Point a
+  type Mag (Point a) = a
+  type Base (Point a) = Point a
 
-    magnitude (Point x y) = sqrt (x * x + y * y)
-    basis p = let m = magnitude p in bool (p |/ m) zero (m == zero)
+  magnitude (Point x y) = sqrt (x * x + y * y)
+  basis p = let m = magnitude p in bool (p |/ m) zero (m == zero)
 
 -- | angle formed by a vector from the origin to a Point and the x-axis (Point 1 0). Note that an angle between two points p1 & p2 is thus angle p2 - angle p1
 instance (TrigField a) => Direction (Point a) where

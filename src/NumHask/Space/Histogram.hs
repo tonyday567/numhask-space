@@ -20,9 +20,9 @@ module NumHask.Space.Histogram
   )
 where
 
-import qualified Data.Map as Map
-import qualified Data.TDigest as TD
-import qualified Data.Vector as V
+import Data.Map qualified as Map
+import Data.TDigest qualified as TD
+import Data.Vector qualified as V
 import NumHask.Prelude
 import NumHask.Space.Range
 import NumHask.Space.Rect
