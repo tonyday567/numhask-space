@@ -62,8 +62,10 @@ data Point a = Point
   }
   deriving (Eq, Generic)
 
-instance (Show a) => Show (Point a) where
-  show (Point a b) = "Point " <> show a <> " " <> show b
+instance (Ord a, Additive a, Show a) => Show (Point a) where
+  show (Point a b) = "Point " <> wrap a <> " " <> wrap b
+    where
+      wrap x = bool (show x) ("(" <> show x <> ")") (x<zero)
 
 instance Functor Point where
   fmap f (Point a b) = Point (f a) (f b)
