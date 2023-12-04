@@ -22,6 +22,7 @@ module NumHask.Space.Point
 where
 
 import Data.Distributive
+import Data.Functor.Classes
 import Data.Functor.Rep
 import NumHask.Prelude hiding (Distributive)
 import NumHask.Space.Range
@@ -60,6 +61,9 @@ data Point a = Point
     _y :: a
   }
   deriving (Eq, Generic)
+
+instance Eq1 Point where
+  liftEq f (Point a b) (Point c d) = f a c && f b d
 
 instance (Ord a, Additive a, Show a) => Show (Point a) where
   show (Point a b) = "Point " <> wrap a <> " " <> wrap b

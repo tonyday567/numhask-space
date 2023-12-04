@@ -15,6 +15,7 @@ import Data.Functor.Rep
 import GHC.Show (show)
 import NumHask.Prelude hiding (show)
 import NumHask.Space.Types as S
+import Data.Functor.Classes
 
 -- $setup
 --
@@ -54,6 +55,9 @@ import NumHask.Space.Types as S
 -- [Range 0.0 0.25,Range 0.25 0.5,Range 0.5 0.75,Range 0.75 1.0]
 data Range a = Range a a
   deriving (Eq, Generic)
+
+instance Eq1 Range where
+  liftEq f (Range a b) (Range c d) = f a c && f b d
 
 instance (Show a) => Show (Range a) where
   show (Range a b) = "Range " <> show a <> " " <> show b
