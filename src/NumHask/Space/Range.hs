@@ -11,11 +11,11 @@ where
 
 import Data.Distributive as D
 import Data.Functor.Apply (Apply (..))
+import Data.Functor.Classes
 import Data.Functor.Rep
 import GHC.Show (show)
 import NumHask.Prelude hiding (show)
 import NumHask.Space.Types as S
-import Data.Functor.Classes
 
 -- $setup
 --
