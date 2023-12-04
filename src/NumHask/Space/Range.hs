@@ -11,7 +11,6 @@ where
 
 import Data.Distributive as D
 import Data.Functor.Apply (Apply (..))
-import Data.Functor.Classes
 import Data.Functor.Rep
 import GHC.Show (show)
 import NumHask.Prelude hiding (show)
@@ -20,7 +19,6 @@ import NumHask.Space.Types as S
 -- $setup
 --
 -- >>> :set -XFlexibleContexts
--- >>> :set -XGADTs
 -- >>> import NumHask.Prelude
 -- >>> import NumHask.Space
 
@@ -59,12 +57,6 @@ data Range a = Range a a
 
 instance (Show a) => Show (Range a) where
   show (Range a b) = "Range " <> show a <> " " <> show b
-
-instance Eq1 Range where
-  liftEq f (Range a b) (Range c d) = f a c && f b d
-
-instance Show1 Range where
-  liftShowsPrec sp _ d (Range a b) = showsBinaryWith sp sp "Range" d a b
 
 instance Functor Range where
   fmap f (Range a b) = Range (f a) (f b)

@@ -22,7 +22,6 @@ module NumHask.Space.Point
 where
 
 import Data.Distributive
-import Data.Functor.Classes
 import Data.Functor.Rep
 import NumHask.Prelude hiding (Distributive)
 import NumHask.Space.Range
@@ -31,9 +30,9 @@ import System.Random
 import System.Random.Stateful
 
 -- $setup
+-- >>> :set -XRebindableSyntax
 -- >>> import NumHask.Prelude
 -- >>> import NumHask.Space
--- >>> :set -XFlexibleContexts
 
 -- | A 2-dimensional Point of a's
 --
@@ -65,16 +64,10 @@ data Point a = Point
 instance (Ord a, Additive a, Show a) => Show (Point a) where
   show (Point a b) = "Point " <> wrap a <> " " <> wrap b
     where
-      wrap x = bool (show x) ("(" <> show x <> ")") (x<zero)
+      wrap x = bool (show x) ("(" <> show x <> ")") (x < zero)
 
 instance Functor Point where
   fmap f (Point a b) = Point (f a) (f b)
-
-instance Eq1 Point where
-  liftEq f (Point a b) (Point c d) = f a c && f b d
-
-instance Show1 Point where
-  liftShowsPrec sp _ d (Point a b) = showsBinaryWith sp sp "Point" d a b
 
 instance Applicative Point where
   pure a = Point a a

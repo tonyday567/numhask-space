@@ -29,13 +29,11 @@ import NumHask.Space.Types
 
 -- $setup
 --
+-- >>> :set -XRebindableSyntax
 -- >>> import NumHask.Prelude
 -- >>> import NumHask.Space
--- >>> import NumHask.Space.Time
 -- >>> import Data.Text (Text, pack)
 -- >>> import Data.Time
---
--- > :set -XOverloadedStrings
 
 -- | a step in time
 data TimeGrain

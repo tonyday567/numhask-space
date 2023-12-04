@@ -1,4 +1,3 @@
-{-# LANGUAGE NegativeLiterals #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -36,7 +35,7 @@ import NumHask.Space.Types
 
 -- $setup
 --
--- >>> :set -XFlexibleContexts
+-- >>> :set -XRebindableSyntax
 -- >>> import NumHask.Prelude
 -- >>> import NumHask.Space
 
@@ -101,7 +100,7 @@ instance (Ord a, Additive a, Show a) => Show (Rect a) where
   show (Rect a b c d) =
     "Rect " <> wrap a <> " " <> wrap b <> " " <> wrap c <> " " <> wrap d
     where
-      wrap x = bool (show x) ("(" <> show x <> ")") (x<zero)
+      wrap x = bool (show x) ("(" <> show x <> ")") (x < zero)
 
 instance Distributive Rect where
   collect f x =
@@ -290,7 +289,7 @@ gridF f r g = (\x -> (x, f (mid x))) <$> gridSpace r g
 -- >>> aspect 2
 -- Rect (-1.0) 1.0 (-0.5) 0.5
 aspect :: Double -> Rect Double
-aspect a = Rect (a * -0.5) (a * 0.5) -0.5 0.5
+aspect a = Rect (a * (-0.5)) (a * 0.5) (-0.5) 0.5
 
 -- | convert a Rect to a ratio
 --

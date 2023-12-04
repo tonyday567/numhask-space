@@ -44,6 +44,7 @@ import System.Random.Stateful
 import Prelude qualified as P
 
 -- $setup
+-- >>> :set -XRebindableSyntax
 -- >>> import NumHask.Prelude
 -- >>> import NumHask.Space
 -- >>> import System.Random.Stateful

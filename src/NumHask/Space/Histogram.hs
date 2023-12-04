@@ -29,6 +29,7 @@ import NumHask.Space.Rect
 import NumHask.Space.Types
 
 -- $setup
+-- >>> :set -XRebindableSyntax
 -- >>> import NumHask.Prelude
 -- >>> import NumHask.Space
 
