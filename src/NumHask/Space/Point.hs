@@ -31,9 +31,9 @@ import System.Random
 import System.Random.Stateful
 
 -- $setup
+-- >>> :set -XRebindableSyntax
 -- >>> import NumHask.Prelude
 -- >>> import NumHask.Space
--- >>> :set -XFlexibleContexts
 
 -- | A 2-dimensional Point of a's
 --
@@ -62,17 +62,16 @@ data Point a = Point
   }
   deriving (Eq, Generic)
 
-instance (Show a) => Show (Point a) where
-  show (Point a b) = "Point " <> show a <> " " <> show b
-
-instance Functor Point where
-  fmap f (Point a b) = Point (f a) (f b)
-
 instance Eq1 Point where
   liftEq f (Point a b) (Point c d) = f a c && f b d
 
-instance Show1 Point where
-  liftShowsPrec sp _ d (Point a b) = showsBinaryWith sp sp "Point" d a b
+instance (Ord a, Additive a, Show a) => Show (Point a) where
+  show (Point a b) = "Point " <> wrap a <> " " <> wrap b
+    where
+      wrap x = bool (show x) ("(" <> show x <> ")") (x < zero)
+
+instance Functor Point where
+  fmap f (Point a b) = Point (f a) (f b)
 
 instance Applicative Point where
   pure a = Point a a

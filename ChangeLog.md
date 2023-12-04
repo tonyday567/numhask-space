@@ -1,3 +1,8 @@
+0.11.1.0
+===
+* Rect and Point show instances include negative brackets.
+* removed NegativeLiterals as a requirement.
+
 0.11.0.0
 ===
 * fixes for numhask-0.11

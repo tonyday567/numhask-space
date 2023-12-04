@@ -44,6 +44,7 @@ import System.Random.Stateful
 import Prelude qualified as P
 
 -- $setup
+-- >>> :set -XRebindableSyntax
 -- >>> import NumHask.Prelude
 -- >>> import NumHask.Space
 -- >>> import System.Random.Stateful
@@ -200,6 +201,7 @@ randomSs n s g = runStateGen g (replicateM n . randomSM s)
 -- > unsafeSpace1 (grid OuterPos s g) == s
 -- > getUnion (sconcat (Union <$> (gridSpace s g))) == s
 class (Space s, Field (Element s)) => FieldSpace s where
+  -- | the type that divides or quotients the space
   type Grid s :: Type
 
   -- | create equally-spaced elements across a space

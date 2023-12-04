@@ -1,4 +1,3 @@
-{-# LANGUAGE NegativeLiterals #-}
 {-# LANGUAGE RebindableSyntax #-}
 
 -- | Mathematics does not rigorously define a [space](https://en.wikipedia.org/wiki/Space_(mathematics\)), leaving library devs free to explore.
@@ -63,14 +62,3 @@ import NumHask.Space.Types hiding ()
 -- - A time span is a 'Space' containing moments of time.
 --
 -- - A 'Histogram' is a divided 'Range' with a count of elements within each division.
-
--- $extensions
--- > :t Point 1.0 -1.0
--- Point 1.0 -1.0
---   :: (Subtractive a, FromRatio a Integer,
---       FromRatio (a -> Point a) Integer) =>
---      a -> Point a
---
--- > :set -XNegativeLiterals
--- > :t Point 1.0 -1.0
--- Point 1.0 -1.0 :: FromRatio a Integer => Point a
