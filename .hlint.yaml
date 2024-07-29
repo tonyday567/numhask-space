@@ -1,5 +1,6 @@
 - ignore: {name: Use -}
 - ignore: {name: Eta reduce }
+- ignore: {name: Parenthesize unary negation }
 
 # Replace a $ b $ c with a . b $ c
 - group: {name: dollar, enabled: true}

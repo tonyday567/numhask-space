@@ -160,7 +160,9 @@ quantiles n xs =
       fromMaybe 0 $
         TD.quantile x (TD.tdigest xs :: TD.TDigest 25)
   )
-    <$> ((/ fromIntegral n) . fromIntegral <$> [0 .. n])
+    . (/ fromIntegral n)
+    . fromIntegral
+    <$> [0 .. n]
 
 -- | single (approx) quantile
 --
