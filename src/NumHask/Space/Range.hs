@@ -19,6 +19,7 @@ import NumHask.Space.Types as S
 
 -- $setup
 --
+-- >>> :m -Prelude
 -- >>> :set -XFlexibleContexts
 -- >>> import NumHask.Prelude
 -- >>> import NumHask.Space
