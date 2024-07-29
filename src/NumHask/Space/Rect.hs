@@ -35,6 +35,7 @@ import NumHask.Space.Types
 
 -- $setup
 --
+-- >>> :m -Prelude
 -- >>> :set -XRebindableSyntax
 -- >>> import NumHask.Prelude
 -- >>> import NumHask.Space
@@ -170,8 +171,8 @@ instance (FromIntegral a Int, Field a, Ord a) => FieldSpace (Rect a) where
 
   gridSpace (Ranges rX rY) (Point stepX stepY) =
     [ Rect x (x + sx) y (y + sy)
-      | x <- grid LowerPos rX stepX,
-        y <- grid LowerPos rY stepY
+    | x <- grid LowerPos rX stepX,
+      y <- grid LowerPos rY stepY
     ]
     where
       sx = width rX / fromIntegral stepX

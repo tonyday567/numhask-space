@@ -39,6 +39,7 @@ import NumHask.Space.Types hiding ()
 
 -- $setup
 --
+-- >>> :m -Prelude
 -- >>> :set -XRebindableSyntax
 -- >>> import NumHask.Prelude
 -- >>> import NumHask.Space

@@ -31,6 +31,7 @@ import System.Random
 import System.Random.Stateful
 
 -- $setup
+-- >>> :m -Prelude
 -- >>> :set -XRebindableSyntax
 -- >>> import NumHask.Prelude
 -- >>> import NumHask.Space

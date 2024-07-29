@@ -1,2 +1,4 @@
 packages:
   numhask-space.cabal
+
+write-ghc-environment-files: always
