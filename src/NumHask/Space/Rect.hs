@@ -8,6 +8,11 @@ module NumHask.Space.Rect
   ( Rect (..),
     pattern Rect,
     pattern Ranges,
+    rx,
+    rz,
+    ry,
+    rw,
+    flipAxes,
     corners,
     corners4,
     projectRect,
@@ -177,6 +182,41 @@ instance (FromIntegral a Int, Field a, Ord a) => FieldSpace (Rect a) where
     where
       sx = width rX / fromIntegral stepX
       sy = width rY / fromIntegral stepY
+
+-- | The first X coordinate of a Rect
+--
+-- >>> rx one
+-- -0.5
+rx :: Rect a -> a
+rx (Rect x _ _ _) = x
+
+-- | The second X coordinate of a Rect
+--
+-- >>> rz one
+-- 0.5
+rz :: Rect a -> a
+rz (Rect _ z _ _) = z
+
+-- | The first Y coordinate of a Rect
+--
+-- >>> ry one
+-- -0.5
+ry :: Rect a -> a
+ry (Rect _ _ y _) = y
+
+-- | The second Y coordinate of a Rect
+--
+-- >>> rw one
+-- 0.5
+rw :: Rect a -> a
+rw (Rect _ _ _ w) = w
+
+-- | flip axes
+--
+-- >>> flipAxes (Rect 1 2 3 4)
+-- Rect 3 4 1 2
+flipAxes :: Rect a -> Rect a
+flipAxes (Rect x z y w) = Rect y w x z
 
 -- | create a list of points representing the lower left and upper right corners of a rectangle.
 --
