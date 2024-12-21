@@ -186,8 +186,12 @@ gridSensible ::
   Int ->
   [Double]
 gridSensible tp inside r@(Range l u) n =
-  bool (bool id (filter (`memberOf` r)) inside $
-    (+ bool 0 (step / 2) (tp == MidPos)) <$> posns) [l - 0.5, l + 0.5] (span' == zero)
+  bool
+    ( bool id (filter (`memberOf` r)) inside $
+        (+ bool 0 (step / 2) (tp == MidPos)) <$> posns
+    )
+    [l - 0.5, l + 0.5]
+    (span' == zero)
   where
     posns = (first' +) . (step *) . fromIntegral <$> [i0 .. i1]
     span' = u - l
