@@ -324,26 +324,6 @@ sensibleTimeGrid p n (Range l u) = (grain, ts)
             <$> [0 ..]
       _notMid -> posns $ (\x -> addGrain grain x first') <$> [0 ..]
 
--- come up with a sensible step for a grid over a Field
-stepSensible ::
-  Pos ->
-  Double ->
-  Int ->
-  Double
-stepSensible tp span' n =
-  step
-    + if tp == MidPos
-      then step / 2
-      else 0
-  where
-    step' = 10 ^^ floor (logBase 10 (span' / fromIntegral n))
-    err = fromIntegral n / span' * step'
-    step
-      | err <= 0.15 = 10 * step'
-      | err <= 0.35 = 5 * step'
-      | err <= 0.75 = 2 * step'
-      | otherwise = step'
-
 -- come up with a sensible step for a grid over a Field, where sensible means the 18th century
 -- practice of using multiples of 3 to round
 stepSensible3 ::

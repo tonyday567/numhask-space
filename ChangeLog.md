@@ -1,3 +1,7 @@
+0.12
+==
+* rx,ry,rz,rw added to NumHask.Space.Rect
+
 0.11.1.0
 ===
 * Rect and Point show instances include negative brackets.

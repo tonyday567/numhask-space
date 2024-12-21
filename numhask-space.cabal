@@ -1,6 +1,6 @@
 cabal-version: 3.0
 name: numhask-space
-version: 0.11.1.0
+version: 0.12.0.0
 license: BSD-3-Clause
 license-file: LICENSE
 copyright: Tony Day (c) 2016
@@ -21,12 +21,10 @@ description:
 
 
 build-type: Simple
-
 tested-with:
     , GHC == 9.10.1
-    , GHC == 9.8.2
     , GHC == 9.6.5
-
+    , GHC == 9.8.2
 extra-doc-files: ChangeLog.md
 
 source-repository head
@@ -52,7 +50,7 @@ library
     hs-source-dirs: src
     build-depends:
         , adjunctions   >=4.0 && <5
-        , base          >=4.7 && <5
+        , base          >=4.14 && <5
         , containers    >=0.6 && <0.8
         , distributive  >=0.4 && <0.7
         , numhask       >=0.10 && <0.13
@@ -60,7 +58,7 @@ library
         , semigroupoids >=5.3 && <6.1
         , tdigest       >=0.2.1 && <0.4
         , text          >=1.2 && <2.2
-        , time          >=1.9.1 && <1.13
+        , time          >=1.9.1 && <1.15
         , vector        >=0.12.3 && <0.14
     exposed-modules:
         NumHask.Space
@@ -73,11 +71,11 @@ library
 
 test-suite doctests
     import: ghc2021-stanza
-    type: exitcode-stdio-1.0
-    hs-source-dirs: test
     main-is: doctests.hs
-    ghc-options: -threaded
+    hs-source-dirs: test
     build-depends:
-        , base
-        , numhask-space
+        , base             >=4.14 && <5
         , doctest-parallel >=0.3 && <0.4
+        , numhask-space
+    ghc-options: -threaded
+    type: exitcode-stdio-1.0
