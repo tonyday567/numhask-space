@@ -1,6 +1,6 @@
 cabal-version: 3.0
 name: numhask-space
-version: 0.12.0.1
+version: 0.13.0.0
 license: BSD-3-Clause
 license-file: LICENSE
 copyright: Tony Day (c) 2016
@@ -54,7 +54,6 @@ library
         , containers    >=0.6 && <0.8
         , distributive  >=0.4 && <0.7
         , numhask       >=0.10 && <0.13
-        , random        >=1.2 && <1.4
         , semigroupoids >=5.3 && <6.1
         , tdigest       >=0.2.1 && <0.4
         , text          >=1.2 && <2.2

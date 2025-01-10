@@ -27,8 +27,6 @@ import Data.Functor.Rep
 import NumHask.Prelude hiding (Distributive)
 import NumHask.Space.Range
 import NumHask.Space.Types
-import System.Random
-import System.Random.Stateful
 
 -- $setup
 -- >>> :m -Prelude
@@ -167,10 +165,6 @@ instance (TrigField a) => Direction (Point a) where
   type Dir (Point a) = a
   angle (Point x y) = atan2 y x
   ray x = Point (cos x) (sin x)
-
-instance (UniformRange a) => UniformRange (Point a) where
-  uniformRM (Point x y, Point x' y') g =
-    Point <$> uniformRM (x, x') g <*> uniformRM (y, y') g
 
 instance (Multiplicative a, Additive a) => Affinity (Point a) a where
   transform (Transform a b c d e f) (Point x y) =

@@ -16,9 +16,6 @@ module NumHask.Space.Types
     Pos (..),
     space1,
     unsafeSpace1,
-    randomS,
-    randomSM,
-    randomSs,
     memberOf,
     contains,
     disjoint,
@@ -40,7 +37,6 @@ where
 
 import Control.Monad
 import NumHask.Prelude
-import System.Random.Stateful
 import Prelude qualified as P
 
 -- $setup
@@ -48,8 +44,6 @@ import Prelude qualified as P
 -- >>> :set -XRebindableSyntax
 -- >>> import NumHask.Prelude
 -- >>> import NumHask.Space
--- >>> import System.Random.Stateful
--- >>> let g = mkStdGen 42
 
 -- | A 'Space' is a continuous set of numbers. Continuous here means that the set has an upper and lower bound, and an element that is between these two bounds is a member of the 'Space'.
 --
@@ -170,32 +164,6 @@ newtype Intersection a = Intersection {getIntersection :: a}
 
 instance (Space a) => Semigroup (Intersection a) where
   (<>) (Intersection a) (Intersection b) = Intersection (a `union` b)
-
--- | supply a random element within a 'Space'
---
--- >>> randomS (one :: Range Double) g
--- (0.43085240252163404,StdGen {unStdGen = SMGen 4530528345362647137 13679457532755275413})
-randomS :: (Space s, RandomGen g, UniformRange (Element s)) => s -> g -> (Element s, g)
-randomS s = uniformR (lower s, upper s)
-
--- | StatefulGen version of randomS
---
--- >>> import Control.Monad
--- >>> runStateGen_ g (randomSM (one :: Range Double))
--- 0.43085240252163404
-randomSM :: (UniformRange (Element s), StatefulGen g m, Space s) => s -> g -> m (Element s)
-randomSM s = uniformRM (lower s, upper s)
-
--- | list of n random elements within a 'Space'
---
--- >>> let g = mkStdGen 42
--- >>> fst (randomSs 3 (one :: Range Double) g)
--- [0.43085240252163404,-6.472345419562497e-2,0.3854692674681801]
---
--- >>> fst (randomSs 3 (Rect 0 10 0 10 :: Rect Int) g)
--- [Point 0 7,Point 0 2,Point 1 7]
-randomSs :: (Space s, RandomGen g, UniformRange (Element s)) => Int -> s -> g -> ([Element s], g)
-randomSs n s g = runStateGen g (replicateM n . randomSM s)
 
 -- | a space that can be divided neatly
 --
