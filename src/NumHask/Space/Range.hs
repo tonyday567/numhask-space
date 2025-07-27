@@ -10,6 +10,7 @@ module NumHask.Space.Range
   )
 where
 
+import Data.Data
 import Data.Distributive as D
 import Data.Functor.Apply (Apply (..))
 import Data.Functor.Classes
@@ -56,7 +57,7 @@ import NumHask.Space.Types as S
 -- >>> gridSpace (Range 0.0 1.0) 4
 -- [Range 0.0 0.25,Range 0.25 0.5,Range 0.5 0.75,Range 0.75 1.0]
 data Range a = Range a a
-  deriving (Eq, Generic)
+  deriving (Eq, Generic, Data)
 
 instance Eq1 Range where
   liftEq f (Range a b) (Range c d) = f a c && f b d

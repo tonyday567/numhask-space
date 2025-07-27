@@ -1,3 +1,13 @@
+0.13.1
+===
+- added Data instances
+
+
+0.13
+===
+- removed randomS, randomSM, randomSs
+- removed random dependency
+
 0.12
 ==
 * rx,ry,rz,rw added to NumHask.Space.Rect

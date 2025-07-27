@@ -29,6 +29,7 @@ module NumHask.Space.Rect
   )
 where
 
+import Data.Data
 import Data.Distributive as D
 import Data.Functor.Compose
 import Data.Functor.Rep
@@ -87,7 +88,8 @@ newtype Rect a
       Applicative,
       Foldable,
       Traversable,
-      Generic
+      Generic,
+      Data
     )
 
 -- | pattern of Rect lowerx upperx lowery uppery
