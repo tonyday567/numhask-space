@@ -21,6 +21,7 @@ module NumHask.Space.Point
   )
 where
 
+import Data.Data
 import Data.Distributive
 import Data.Functor.Classes
 import Data.Functor.Rep
@@ -59,7 +60,7 @@ data Point a = Point
   { _x :: a,
     _y :: a
   }
-  deriving (Eq, Generic)
+  deriving (Eq, Generic, Data)
 
 instance Eq1 Point where
   liftEq f (Point a b) (Point c d) = f a c && f b d

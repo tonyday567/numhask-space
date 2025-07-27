@@ -19,6 +19,7 @@ module NumHask.Space.Time
 where
 
 import Data.Containers.ListUtils (nubOrd)
+import Data.Data
 import Data.Fixed (Fixed (MkFixed))
 import Data.Sequence qualified as Seq
 import Data.Text (Text, pack, unpack)
@@ -44,7 +45,7 @@ data TimeGrain
   | Hours Int
   | Minutes Int
   | Seconds Double
-  deriving (Show, Eq, Generic)
+  deriving (Eq, Show, Generic, Data)
 
 grainSecs :: TimeGrain -> Double
 grainSecs (Years n) = fromIntegral n * 365.0 * fromNominalDiffTime nominalDay
