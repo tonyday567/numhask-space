@@ -1,3 +1,7 @@
+0.13.1.1
+===
+- GHC 9.14 support
+
 0.13.1
 ===
 - added Data instances

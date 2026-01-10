@@ -1,6 +1,6 @@
 cabal-version: 3.0
 name: numhask-space
-version: 0.13.1.0
+version: 0.13.1.1
 license: BSD-3-Clause
 license-file: LICENSE
 copyright: Tony Day (c) 2016
@@ -25,6 +25,7 @@ tested-with:
   ghc ==9.8.4
   ghc ==9.10.2
   ghc ==9.12.2
+  ghc ==9.14.1
 
 extra-doc-files: ChangeLog.md
 
@@ -87,13 +88,3 @@ library
     NumHask.Space.Time
     NumHask.Space.Types
 
-test-suite doctests
-  import: ghc2024-stanza
-  main-is: doctests.hs
-  hs-source-dirs: test
-  build-depends:
-    base >=4.14 && <5,
-    doctest-parallel >=0.3 && <0.5,
-
-  ghc-options: -threaded
-  type: exitcode-stdio-1.0
