@@ -34,8 +34,9 @@ import NumHask.Space.Types
 -- >>> :set -XRebindableSyntax
 -- >>> import NumHask.Prelude
 -- >>> import NumHask.Space
+-- >>> import NumHask.Space.Time (TimeGrain(..))
 -- >>> import Data.Text (Text, pack)
--- >>> import Data.Time
+-- >>> import Data.Time hiding (Hours, Minutes, Seconds)
 
 -- | a step in time
 data TimeGrain
