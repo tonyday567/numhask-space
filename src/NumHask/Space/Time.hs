@@ -23,7 +23,7 @@ import Data.Data
 import Data.Fixed (Fixed (MkFixed))
 import Data.Sequence qualified as Seq
 import Data.Text (Text, pack, unpack)
-import Data.Time
+import Data.Time hiding (Hours, Minutes, Seconds)
 import NumHask.Prelude
 import NumHask.Space.Range
 import NumHask.Space.Types
