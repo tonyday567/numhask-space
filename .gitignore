@@ -11,3 +11,4 @@ TAGS
 /cabal.project.local*
 /.hkgr/
 /checklist.org
+.ghc.environment.*
