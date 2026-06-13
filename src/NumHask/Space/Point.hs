@@ -69,6 +69,27 @@ instance (Ord a, Additive a, Show a) => Show (Point a) where
   show (Point a b) = "Point " <> wrap a <> " " <> wrap b
     where
       wrap x = bool (show x) ("(" <> show x <> ")") (x < zero)
+  showsPrec d p = showParen (d > app_prec) (showString (show p))
+    where app_prec = 10
+
+instance Read a => Read (Point a) where
+  readsPrec d s = readParen (d > app_prec) parsePoint s
+    where
+      app_prec = 10
+      parsePoint r = do
+        ("Point", r1) <- lex r
+        (x, r2) <- readsMaybeNeg r1
+        (y, r3) <- readsMaybeNeg r2
+        pure (Point x y, r3)
+      readsMaybeNeg t = case reads t of
+        [(v, rest)] -> [(v, rest)]
+        [] -> case t of
+          '(' : r0 -> case reads r0 of
+            [(v, rest)] -> case rest of
+              ')' : r -> [(v, r)]
+              _ -> []
+            _ -> []
+          _ -> []
 
 instance Functor Point where
   fmap f (Point a b) = Point (f a) (f b)
