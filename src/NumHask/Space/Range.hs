@@ -65,7 +65,8 @@ instance Eq1 Range where
 instance (Show a) => Show (Range a) where
   show (Range a b) = "Range " <> show a <> " " <> show b
   showsPrec d p = showParen (d > app_prec) (showString (show p))
-    where app_prec = 10
+    where
+      app_prec = 10
 
 instance Functor Range where
   fmap f (Range a b) = Range (f a) (f b)

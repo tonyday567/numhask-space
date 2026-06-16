@@ -110,9 +110,10 @@ instance (Ord a, Additive a, Show a) => Show (Rect a) where
     where
       wrap x = bool (show x) ("(" <> show x <> ")") (x < zero)
   showsPrec d p = showParen (d > app_prec) (showString (show p))
-    where app_prec = 10
+    where
+      app_prec = 10
 
-instance Read a => Read (Rect a) where
+instance (Read a) => Read (Rect a) where
   readsPrec d s = readParen (d > app_prec) parseRect s
     where
       app_prec = 10
