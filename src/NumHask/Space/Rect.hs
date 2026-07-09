@@ -109,6 +109,30 @@ instance (Ord a, Additive a, Show a) => Show (Rect a) where
     "Rect " <> wrap a <> " " <> wrap b <> " " <> wrap c <> " " <> wrap d
     where
       wrap x = bool (show x) ("(" <> show x <> ")") (x < zero)
+  showsPrec d p = showParen (d > app_prec) (showString (show p))
+    where
+      app_prec = 10
+
+instance (Read a) => Read (Rect a) where
+  readsPrec d s = readParen (d > app_prec) parseRect s
+    where
+      app_prec = 10
+      parseRect r = do
+        ("Rect", r1) <- lex r
+        (a, r2) <- readsMaybeNeg r1
+        (b, r3) <- readsMaybeNeg r2
+        (c, r4) <- readsMaybeNeg r3
+        (d, r5) <- readsMaybeNeg r4
+        pure (Rect a b c d, r5)
+      readsMaybeNeg t = case reads t of
+        [(v, rest)] -> [(v, rest)]
+        [] -> case t of
+          '(' : r0 -> case reads r0 of
+            [(v, rest)] -> case rest of
+              ')' : r -> [(v, r)]
+              _ -> []
+            _ -> []
+          _ -> []
 
 instance Distributive Rect where
   collect f x =
@@ -285,7 +309,7 @@ instance (Ord a, Field a) => Basis (Rect a) where
 -- | convex hull union of Rect's
 --
 -- >>> foldRect [Rect 0 1 0 1, one]
--- Just Rect (-0.5) 1.0 (-0.5) 1.0
+-- Just (Rect (-0.5) 1.0 (-0.5) 1.0)
 foldRect :: (Ord a) => [Rect a] -> Maybe (Rect a)
 foldRect [] = Nothing
 foldRect (x : xs) = Just $ sconcat (x :| xs)

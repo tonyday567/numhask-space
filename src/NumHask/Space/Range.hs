@@ -57,13 +57,16 @@ import NumHask.Space.Types as S
 -- >>> gridSpace (Range 0.0 1.0) 4
 -- [Range 0.0 0.25,Range 0.25 0.5,Range 0.5 0.75,Range 0.75 1.0]
 data Range a = Range a a
-  deriving (Eq, Generic, Data)
+  deriving (Eq, Read, Generic, Data)
 
 instance Eq1 Range where
   liftEq f (Range a b) (Range c d) = f a c && f b d
 
 instance (Show a) => Show (Range a) where
   show (Range a b) = "Range " <> show a <> " " <> show b
+  showsPrec d p = showParen (d > app_prec) (showString (show p))
+    where
+      app_prec = 10
 
 instance Functor Range where
   fmap f (Range a b) = Range (f a) (f b)
