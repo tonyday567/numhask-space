@@ -21,11 +21,11 @@ description:
 
 build-type: Simple
 tested-with:
-  ghc ==9.6.7
-  ghc ==9.8.4
   ghc ==9.10.2
   ghc ==9.12.2
   ghc ==9.14.1
+  ghc ==9.6.7
+  ghc ==9.8.4
 
 extra-doc-files: ChangeLog.md
 
@@ -76,7 +76,7 @@ library
     semigroupoids >=5.3 && <6.1,
     tdigest >=0.2.1 && <0.4,
     text >=1.2 && <2.2,
-    time >=1.9.1 && <1.16,
+    time >=1.9.1 && <1.17,
     vector >=0.12.3 && <0.14,
 
   exposed-modules:
@@ -87,4 +87,3 @@ library
     NumHask.Space.Rect
     NumHask.Space.Time
     NumHask.Space.Types
-

@@ -6,3 +6,4 @@
   `showsPrec` implementations that parenthesise values when precedence is
   greater than function-application precedence.
 - Added `Read` instances for `Point` and `Rect`.
+- Relaxed the upper bound on `time` to `<1.17`.
