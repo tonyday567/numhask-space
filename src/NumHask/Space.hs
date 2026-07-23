@@ -21,6 +21,9 @@ module NumHask.Space
     -- $space
     module NumHask.Space.Types,
 
+    -- * Charts
+    module NumHask.Space.Chart,
+
     -- * Instances
     module NumHask.Space.Point,
     module NumHask.Space.Range,
@@ -30,6 +33,7 @@ module NumHask.Space
   )
 where
 
+import NumHask.Space.Chart hiding ()
 import NumHask.Space.Histogram hiding ()
 import NumHask.Space.Point hiding ()
 import NumHask.Space.Range hiding ()

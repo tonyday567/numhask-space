@@ -81,6 +81,7 @@ library
 
   exposed-modules:
     NumHask.Space
+    NumHask.Space.Chart
     NumHask.Space.Histogram
     NumHask.Space.Point
     NumHask.Space.Range
