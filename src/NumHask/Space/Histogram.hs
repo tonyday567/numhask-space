@@ -20,7 +20,7 @@ module NumHask.Space.Histogram
 where
 
 import Data.Map qualified as Map
-import Data.TDigest qualified as TD
+import Data.Sketch.TDigest qualified as TD
 import Data.Vector qualified as V
 import NumHask.Prelude
 import NumHask.Space.Range
@@ -125,12 +125,18 @@ regularQuantiles n xs = quantileFold qs xs
   where
     qs = ((1 / n) *) <$> [0 .. n]
 
+-- | T-digest compression parameter. Chosen so that small-sample doctests
+-- (e.g. 'regularQuantiles') reproduce the exact quantiles produced by the
+-- previous @tdigest@ package.
+tdigestDelta :: Double
+tdigestDelta = 50
+
 -- | one-pass approximate quantiles fold
 quantileFold :: [Double] -> [Double] -> [Double]
 quantileFold qs xs = done $ foldl' step begin xs
   where
-    step x a = TD.insert a x
-    begin = TD.tdigest ([] :: [Double]) :: TD.TDigest 25
+    step x a = TD.add a x
+    begin = TD.emptyWith tdigestDelta
     done x = fromMaybe (0 / 0) . (`TD.quantile` TD.compress x) <$> qs
 
 -- | normalize a histogram
@@ -157,7 +163,7 @@ quantiles :: (Foldable f) => Int -> f Double -> [Double]
 quantiles n xs =
   ( \x ->
       fromMaybe 0 $
-        TD.quantile x (TD.tdigest xs :: TD.TDigest 25)
+        TD.quantile x (foldl' (flip TD.add) (TD.emptyWith tdigestDelta) xs)
   )
     . (/ fromIntegral n)
     . fromIntegral
@@ -168,4 +174,4 @@ quantiles n xs =
 -- >>> quantile 0.1 [1..1000]
 -- 100.5
 quantile :: (Foldable f) => Double -> f Double -> Double
-quantile p xs = fromMaybe 0 $ TD.quantile p (TD.tdigest xs :: TD.TDigest 25)
+quantile p xs = fromMaybe 0 $ TD.quantile p (foldl' (flip TD.add) (TD.emptyWith tdigestDelta) xs)
