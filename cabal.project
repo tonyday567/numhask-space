@@ -2,7 +2,3 @@ packages:
   numhask-space.cabal
 
 write-ghc-environment-files: always
-allow-newer:
-  *:bytestring,
-  *:transformers,
-  *:template-haskell
