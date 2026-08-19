@@ -8,7 +8,6 @@ TAGS
 /stack.yaml.lock
 /.hie/
 /.ghc.environment.*
-/cabal.project.local*
 /.hkgr/
 /checklist.org
 .ghc.environment.*

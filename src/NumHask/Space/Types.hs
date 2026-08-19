@@ -306,10 +306,10 @@ inverseTransform (Transform a b c d e f) =
             ( Transform
                 (a / det)
                 (d / det)
-                (-(a * c + d * f) / det)
+                (-((a * c + d * f) / det))
                 (b / det)
                 (e / det)
-                (-(b * c + e * f) / det)
+                (-((b * c + e * f) / det))
             )
         )
         Nothing

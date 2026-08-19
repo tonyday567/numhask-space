@@ -2,6 +2,7 @@
 {-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# OPTIONS_GHC -Wno-pattern-namespace-specifier #-}
 
 -- | A (finite) two-dimensional plane, implemented as a composite of a 'Point' of 'Range's.
 module NumHask.Space.Rect
@@ -122,8 +123,8 @@ instance (Read a) => Read (Rect a) where
         (a, r2) <- readsMaybeNeg r1
         (b, r3) <- readsMaybeNeg r2
         (c, r4) <- readsMaybeNeg r3
-        (d, r5) <- readsMaybeNeg r4
-        pure (Rect a b c d, r5)
+        (d', r5) <- readsMaybeNeg r4
+        pure (Rect a b c d', r5)
       readsMaybeNeg t = case reads t of
         [(v, rest)] -> [(v, rest)]
         [] -> case t of
@@ -133,6 +134,7 @@ instance (Read a) => Read (Rect a) where
               _ -> []
             _ -> []
           _ -> []
+        _ -> []
 
 instance Distributive Rect where
   collect f x =

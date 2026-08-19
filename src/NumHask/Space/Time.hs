@@ -23,7 +23,7 @@ import Data.Data
 import Data.Fixed (Fixed (MkFixed))
 import Data.Sequence qualified as Seq
 import Data.Text (Text, pack, unpack)
-import Data.Time hiding (Hours, Minutes, Seconds)
+import Data.Time
 import NumHask.Prelude
 import NumHask.Space.Range
 import NumHask.Space.Types
@@ -36,7 +36,7 @@ import NumHask.Space.Types
 -- >>> import NumHask.Space
 -- >>> import NumHask.Space.Time (TimeGrain(..))
 -- >>> import Data.Text (Text, pack)
--- >>> import Data.Time hiding (Hours, Minutes, Seconds)
+-- >>> import Data.Time
 
 -- | a step in time
 data TimeGrain

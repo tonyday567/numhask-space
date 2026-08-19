@@ -91,6 +91,7 @@ instance (Read a) => Read (Point a) where
               _ -> []
             _ -> []
           _ -> []
+        _ -> []
 
 instance Functor Point where
   fmap f (Point a b) = Point (f a) (f b)
