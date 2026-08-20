@@ -76,8 +76,8 @@ library
     numhask >=0.10 && <0.15,
     semigroupoids >=5.3 && <6.1,
     text >=1.2 && <2.2,
-    time >=1.9.1 && <1.17,
-    vector >=0.12.3 && <0.14,
+    time >=1.9 && <1.17,
+    vector >=0.12 && <0.14,
 
   exposed-modules:
     NumHask.Space
