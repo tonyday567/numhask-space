@@ -23,7 +23,7 @@ import Data.Data
 import Data.Fixed (Fixed (MkFixed))
 import Data.Sequence qualified as Seq
 import Data.Text (Text, pack, unpack)
-import Data.Time
+import Data.Time hiding (Hours, Minutes, Seconds)
 import NumHask.Prelude
 import NumHask.Space.Range
 import NumHask.Space.Types
@@ -36,7 +36,7 @@ import NumHask.Space.Types
 -- >>> import NumHask.Space
 -- >>> import NumHask.Space.Time (TimeGrain(..))
 -- >>> import Data.Text (Text, pack)
--- >>> import Data.Time
+-- >>> import Data.Time hiding (Hours, Minutes, Seconds)
 
 -- | a step in time
 data TimeGrain
@@ -116,7 +116,7 @@ addHalfGrain (Years n) (UTCTime d t) =
     )
     t
   where
-    DivMod d' m' = divMod 2 n
+    (d', m') = divMod 2 n
 addHalfGrain (Months n) (UTCTime d t) =
   UTCTime
     ( addDays (if m' == 1 then 15 else 0 {- sue me -})
@@ -125,12 +125,12 @@ addHalfGrain (Months n) (UTCTime d t) =
     )
     t
   where
-    DivMod d' m' = divMod 2 n
+    (d', m') = divMod 2 n
 addHalfGrain (Days n) (UTCTime d t) =
   (if m' == 1 then addUTCTime (toNominalDiffTime (0.5 * grainSecs (Days 1))) else id) $
     UTCTime (addDays (fromIntegral d') d) t
   where
-    DivMod d' m' = divMod 2 n
+    (d', m') = divMod 2 n
 addHalfGrain g@(Hours _) d = addUTCTime (toNominalDiffTime (0.5 * grainSecs g)) d
 addHalfGrain g@(Minutes _) d = addUTCTime (toNominalDiffTime (0.5 * grainSecs g)) d
 addHalfGrain g@(Seconds _) d = addUTCTime (toNominalDiffTime (0.5 * grainSecs g)) d
