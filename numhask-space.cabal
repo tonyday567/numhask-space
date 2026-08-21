@@ -36,6 +36,7 @@ source-repository head
 common ghc-options-stanza
   ghc-options:
     -Wall
+    -Wno-unused-imports
     -Wcompat
     -Widentities
     -Wincomplete-record-updates
